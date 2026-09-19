@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Malamai Circle - Header Component</title>
+  <link rel="stylesheet" href="../tokens/theme.css">
+  <link rel="stylesheet" href="components.css">
+  <script src="../theme-helper.js"></script>
+</head>
+<body style="padding: var(--space-4);">
+
+  <!-- Header Component -->
+  <header class="mc-header" role="banner">
+    <div class="mc-header__container">
+      
+      <!-- Product Branding -->
+      <a href="#home" class="mc-header__brand" aria-label="Malamai Circle Home">
+        <svg class="icon" viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+        <span>Malamai Circle</span>
+        <span class="mc-header__brand-badge">Teachers Hub</span>
+      </a>
+
+      <!-- Actions: Status Badges Slot & Language Control -->
+      <div class="mc-header__actions">
+        <!-- Status Badges Slot -->
+        <div class="mc-header__status-slot" role="region" aria-label="Current Teacher Status">
+          <span class="mc-status-badge mc-status-badge--verified" title="Teacher Registration Council of Nigeria Registered">
+            <svg class="icon" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+            </svg>
+            <span>TRCN registered</span>
+          </span>
+        </div>
+
+        <!-- Accessible Language Switcher: Hausa / English -->
+        <nav class="mc-lang-control" aria-label="Zaɓi Harshe / Language Selection">
+          <button type="button" class="mc-lang-btn" id="lang-ha" aria-pressed="false" aria-label="Sauya zuwa Hausa">
+            Hausa
+          </button>
+          <button type="button" class="mc-lang-btn" id="lang-en" aria-pressed="true" aria-label="Switch to English">
+            English
+          </button>
+        </nav>
+      </div>
+
+    </div>
+  </header>
+
+  <script>
+    // Language toggle interaction
+    const btnHa = document.getElementById('lang-ha');
+    const btnEn = document.getElementById('lang-en');
+    btnHa.addEventListener('click', () => {
+      btnHa.setAttribute('aria-pressed', 'true');
+      btnEn.setAttribute('aria-pressed', 'false');
+      document.documentElement.setAttribute('lang', 'ha');
+    });
+    btnEn.addEventListener('click', () => {
+      btnEn.setAttribute('aria-pressed', 'true');
+      btnHa.setAttribute('aria-pressed', 'false');
+      document.documentElement.setAttribute('lang', 'en');
+    });
+  </script>
+
+</body>
+</html>

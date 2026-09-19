@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Malamai Circle - Design System Test Harness</title>
+  <link rel="stylesheet" href="tokens/theme.css">
+  <link rel="stylesheet" href="components/components.css">
+  <script src="theme-helper.js"></script>
+  <style>
+    /* Test Suite Layout */
+    .test-harness {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: var(--space-4);
+    }
+    .test-section {
+      margin-bottom: var(--space-10);
+      padding: var(--space-5);
+      background: var(--surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+    }
+    .test-section__title {
+      font-size: var(--fs-title-sm);
+      font-weight: var(--fw-bold);
+      color: var(--text-primary);
+      margin-top: 0;
+      margin-bottom: var(--space-2);
+      border-bottom: 2px solid var(--border-subtle);
+      padding-bottom: var(--space-2);
+    }
+    .test-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: var(--space-4);
+    }
+    @media (min-width: 768px) {
+      .test-grid--2col {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+    /* Grayscale simulation mode */
+    html.simulate-monochrome {
+      filter: grayscale(100%) !important;
+    }
+    /* Automated Test Report Table */
+    #test-results-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: var(--fs-small);
+      margin-top: var(--space-4);
+    }
+    #test-results-table th, #test-results-table td {
+      border: 1px solid var(--border-subtle);
+      padding: var(--space-2) var(--space-3);
+      text-align: left;
+    }
+    #test-results-table th {
+      background: var(--surface-bg);
+      font-weight: var(--fw-bold);
+    }
+    .pass-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: var(--radius-sm);
+      background: var(--feedback-success-tint);
+      color: var(--feedback-success);
+      font-weight: var(--fw-bold);
+      font-family: var(--font-mono);
+    }
+    .fail-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: var(--radius-sm);
+      background: var(--feedback-error-tint);
+      color: var(--feedback-error);
+      font-weight: var(--fw-bold);
+      font-family: var(--font-mono);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 1. Header Component -->
+  <header class="mc-header" role="banner" id="test-header">
+    <div class="mc-header__container">
+      <a href="#home" class="mc-header__brand" id="brand-link" aria-label="Malamai Circle Home">
+        <svg class="icon" viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+        <span>Malamai Circle</span>
+        <span class="mc-header__brand-badge">Teachers Hub</span>
+      </a>
+
+      <div class="mc-header__actions">
+        <!-- Status slot in header -->
+        <div class="mc-header__status-slot">
+          <span class="mc-status-badge mc-status-badge--verified" id="header-status-badge">
+            <svg class="icon" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+            </svg>
+            <span>TRCN registered</span>
+          </span>
+        </div>
+
+        <!-- Language toggle -->
+        <nav class="mc-lang-control" aria-label="Language selection">
+          <button type="button" class="mc-lang-btn" id="lang-ha-btn" aria-pressed="false">Hausa</button>
+          <button type="button" class="mc-lang-btn" id="lang-en-btn" aria-pressed="true">English</button>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <div class="test-harness">
+
+    <!-- Theme & Diagnostics Controls Bar -->
+    <div class="test-section" style="margin-top: var(--space-4);">
+      <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-4);">
+        <div>
+          <!-- 8. Theme Toggle Component -->
+          <div class="mc-theme-control" role="region" aria-label="Appearance Mode">
+            <span id="theme-label" style="display: block; font-size: var(--fs-small); font-weight: var(--fw-semibold); margin-bottom: var(--space-2); color: var(--text-primary);">
+              Theme Mode:
+            </span>
+            <div class="mc-theme-toggle" role="radiogroup" aria-labelledby="theme-label">
+              <button type="button" role="radio" aria-checked="false" class="mc-theme-toggle__option" id="theme-btn-light" data-theme-value="light">
+                <svg class="icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                <span>Light</span>
+              </button>
+              <button type="button" role="radio" aria-checked="false" class="mc-theme-toggle__option" id="theme-btn-dark" data-theme-value="dark">
+                <svg class="icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                <span>Dark</span>
+              </button>
+              <button type="button" role="radio" aria-checked="true" class="mc-theme-toggle__option is-active" id="theme-btn-system" data-theme-value="system">
+                <svg class="icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+                <span>System</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: var(--target-gap-min); flex-wrap: wrap;">
+          <button type="button" class="mc-btn mc-btn--secondary" id="btn-toggle-mono">
+            <span>Toggle Grayscale Simulation</span>
+          </button>
+          <button type="button" class="mc-btn mc-btn--primary" id="btn-run-tests">
+            <span>Run Automated WCAG & Target Verification</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Automated Verification Results Dashboard -->
+    <section class="test-section" id="diagnostics-section" aria-labelledby="diagnostics-heading">
+      <h2 class="test-section__title" id="diagnostics-heading">Automated Verification Report (WCAG, Contrast, Targets & Aliases)</h2>
+      <div id="diagnostics-summary" style="font-size: var(--fs-body); margin-bottom: var(--space-3); color: var(--text-primary);">
+        Click "Run Automated WCAG & Target Verification" above to run in-page calculations.
+      </div>
+      <div class="mc-table-container">
+        <table id="test-results-table">
+          <thead>
+            <tr>
+              <th>Check Item</th>
+              <th>Requirement</th>
+              <th>Calculated Value</th>
+              <th>Status</th>
+              <th>Context</th>
+            </tr>
+          </thead>
+          <tbody id="test-results-tbody">
+            <tr>
+              <td colspan="5" style="color: var(--text-muted); text-align: center;">Tests not yet executed.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 2. Buttons Component -->
+    <section class="test-section" aria-labelledby="buttons-heading">
+      <h2 class="test-section__title" id="buttons-heading">Buttons Component</h2>
+      <p style="color: var(--text-muted); margin-bottom: var(--space-4);">
+        Primary (brand), Secondary (surface + input-border), Destructive (button-danger-bg), Disabled (text-disabled, not focusable).
+      </p>
+      <div class="mc-btn-group" role="group" aria-label="Button variants">
+        <button type="button" class="mc-btn mc-btn--primary" id="test-btn-primary">
+          <svg class="icon" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          <span>Primary Action</span>
+        </button>
+        <button type="button" class="mc-btn mc-btn--secondary" id="test-btn-secondary">
+          <span>Secondary Action</span>
+        </button>
+        <button type="button" class="mc-btn mc-btn--destructive" id="test-btn-destructive">
+          <svg class="icon" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg>
+          <span>Destructive Action</span>
+        </button>
+        <button type="button" class="mc-btn mc-btn--disabled" id="test-btn-disabled" disabled tabindex="-1" aria-disabled="true">
+          <span>Disabled Action</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- 3. Form Inputs Component -->
+    <section class="test-section" aria-labelledby="inputs-heading">
+      <h2 class="test-section__title" id="inputs-heading">Inputs & Forms Component</h2>
+      <div class="test-grid test-grid--2col">
+        <!-- Text Input & Dropdown -->
+        <div>
+          <div class="mc-form-group">
+            <label for="input-sample-text" class="mc-label">
+              <span>Full Name</span>
+              <span class="mc-label__required">*</span>
+            </label>
+            <input type="text" id="input-sample-text" class="mc-input" placeholder="e.g. Amina Garba" aria-describedby="text-helper">
+            <span id="text-helper" class="mc-helper-text">Official school identification name.</span>
+          </div>
+
+          <div class="mc-form-group">
+            <label for="input-sample-select" class="mc-label">
+              <span>Class Level</span>
+              <span class="mc-label__required">*</span>
+            </label>
+            <div class="mc-select-wrapper">
+              <select id="input-sample-select" class="mc-select" aria-describedby="select-helper">
+                <option value="pri1">Primary 1</option>
+                <option value="pri2">Primary 2</option>
+                <option value="pri3">Primary 3</option>
+                <option value="sec1">JSS 1</option>
+              </select>
+              <svg class="icon mc-select-icon" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </div>
+            <span id="select-helper" class="mc-helper-text">Select teaching tier.</span>
+          </div>
+        </div>
+
+        <!-- Textarea & Error State -->
+        <div>
+          <div class="mc-form-group">
+            <label for="input-sample-textarea" class="mc-label">
+              <span>Lesson Notes</span>
+            </label>
+            <textarea id="input-sample-textarea" class="mc-textarea" placeholder="Enter notes..." aria-describedby="textarea-helper"></textarea>
+            <span id="textarea-helper" class="mc-helper-text">Optional teaching reflections.</span>
+          </div>
+
+          <div class="mc-form-group mc-form-group--error">
+            <label for="input-sample-error" class="mc-label">
+              <span>Registration ID (Error State)</span>
+              <span class="mc-label__required">*</span>
+            </label>
+            <input type="text" id="input-sample-error" class="mc-input" value="ERR-999" aria-invalid="true" aria-describedby="error-feedback">
+            <span id="error-feedback" class="mc-error-text" role="alert">
+              <svg class="icon" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+              <span>Invalid TRCN identification code format.</span>
+            </span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. Feedback Banners Component -->
+    <section class="test-section" aria-labelledby="feedback-heading">
+      <h2 class="test-section__title" id="feedback-heading">Feedback Banners Component (Error, Warning, Info, Success)</h2>
+      <div class="mc-feedback-list">
+        <!-- Error -->
+        <aside class="mc-feedback mc-feedback--error" id="feedback-banner-error" role="alert">
+          <svg class="icon mc-feedback__icon" viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+          <div class="mc-feedback__body">
+            <strong class="mc-feedback__title">Error</strong>
+            <p class="mc-feedback__message">Server sync failed. Please check local connectivity and retry.</p>
+          </div>
+        </aside>
+
+        <!-- Warning -->
+        <aside class="mc-feedback mc-feedback--warning" id="feedback-banner-warning" role="alert">
+          <svg class="icon mc-feedback__icon" viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+          <div class="mc-feedback__body">
+            <strong class="mc-feedback__title">Warning</strong>
+            <p class="mc-feedback__message">Your annual license expires soon. Complete your registration update.</p>
+          </div>
+        </aside>
+
+        <!-- Info -->
+        <aside class="mc-feedback mc-feedback--info" id="feedback-banner-info" role="status">
+          <svg class="icon mc-feedback__icon" viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+          <div class="mc-feedback__body">
+            <strong class="mc-feedback__title">Information</strong>
+            <p class="mc-feedback__message">Term 2 curriculum materials have been updated for regional teachers.</p>
+          </div>
+        </aside>
+
+        <!-- Success -->
+        <aside class="mc-feedback mc-feedback--success" id="feedback-banner-success" role="status">
+          <svg class="icon mc-feedback__icon" viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+          <div class="mc-feedback__body">
+            <strong class="mc-feedback__title">Success</strong>
+            <p class="mc-feedback__message">Lesson plan accepted and verified by your circle supervisor.</p>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- 5. Status Badges and Cards Component -->
+    <section class="test-section" aria-labelledby="status-heading">
+      <h2 class="test-section__title" id="status-heading">Status Badges & Cards Component</h2>
+      
+      <!-- Badges -->
+      <h3 style="font-size: var(--fs-body-lg); color: var(--text-primary); margin-top: 0;">Status Chips (6 States)</h3>
+      <div class="mc-badge-group" style="margin-bottom: var(--space-6);">
+        <span class="mc-status-badge mc-status-badge--pending" id="chip-pending">
+          <svg class="icon" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+          <span>Still needs an answer</span>
+        </span>
+        <span class="mc-status-badge mc-status-badge--success" id="chip-success">
+          <svg class="icon" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          <span>This helped</span>
+        </span>
+        <span class="mc-status-badge mc-status-badge--active" id="chip-active">
+          <svg class="icon" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+          <span>Waiting for review</span>
+        </span>
+        <span class="mc-status-badge mc-status-badge--danger" id="chip-danger">
+          <svg class="icon" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg>
+          <span>Hidden or removed</span>
+        </span>
+        <span class="mc-status-badge mc-status-badge--neutral" id="chip-neutral">
+          <svg class="icon" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4" fill="currentColor"></circle></svg>
+          <span>Draft</span>
+        </span>
+        <span class="mc-status-badge mc-status-badge--verified" id="chip-verified">
+          <svg class="icon" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+          <span>TRCN registered</span>
+        </span>
+      </div>
+
+      <!-- Cards -->
+      <h3 style="font-size: var(--fs-body-lg); color: var(--text-primary);">Status Cards (Border Shapes & Icons)</h3>
+      <div class="mc-status-card-list">
+        <article class="mc-status-card mc-status-card--pending" id="test-card-pending">
+          <div class="mc-status-card__header">
+            <svg class="icon mc-status-card__icon" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            <span class="mc-status-card__label">Still needs an answer</span>
+          </div>
+          <p class="mc-status-card__message">Pending peer answer for localized biology lesson plan.</p>
+        </article>
+
+        <article class="mc-status-card mc-status-card--success" id="test-card-success">
+          <div class="mc-status-card__header">
+            <svg class="icon mc-status-card__icon" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            <span class="mc-status-card__label">This helped</span>
+          </div>
+          <p class="mc-status-card__message">Verified solution accepted by community teachers.</p>
+        </article>
+
+        <article class="mc-status-card mc-status-card--active" id="test-card-active">
+          <div class="mc-status-card__header">
+            <svg class="icon mc-status-card__icon" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+            <span class="mc-status-card__label">Waiting for review</span>
+          </div>
+          <p class="mc-status-card__message">In review by subject matter curriculum coordinator.</p>
+        </article>
+
+        <article class="mc-status-card mc-status-card--danger" id="test-card-danger">
+          <div class="mc-status-card__header">
+            <svg class="icon mc-status-card__icon" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg>
+            <span class="mc-status-card__label">Hidden or removed</span>
+          </div>
+          <p class="mc-status-card__message">Item hidden due to community moderation notice.</p>
+        </article>
+
+        <article class="mc-status-card mc-status-card--neutral" id="test-card-neutral">
+          <div class="mc-status-card__header">
+            <svg class="icon mc-status-card__icon" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4" fill="currentColor"></circle></svg>
+            <span class="mc-status-card__label">Draft</span>
+          </div>
+          <p class="mc-status-card__message">Draft saved locally on device.</p>
+        </article>
+
+        <article class="mc-status-card mc-status-card--verified" id="test-card-verified">
+          <div class="mc-status-card__header">
+            <svg class="icon mc-status-card__icon" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+            <span class="mc-status-card__label">TRCN registered</span>
+          </div>
+          <p class="mc-status-card__message">Verified official state teacher credentials.</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- 6. Admin Table Component -->
+    <section class="test-section" aria-labelledby="table-heading">
+      <h2 class="test-section__title" id="table-heading">Admin Table Component (Sticky Header & Horizontal Scroll Container)</h2>
+      <div class="mc-table-container" tabindex="0" role="region" aria-label="Teachers Table">
+        <table class="mc-table" id="test-table">
+          <thead>
+            <tr>
+              <th scope="col">Teacher ID</th>
+              <th scope="col">Full Name</th>
+              <th scope="col">LGA</th>
+              <th scope="col">Status</th>
+              <th scope="col" class="mc-table__numeric">Students</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="font-family: var(--font-mono);">KN-01</td>
+              <td>Amina Garba</td>
+              <td>Kano Municipal</td>
+              <td><span class="mc-status-badge mc-status-badge--verified"><span>TRCN registered</span></span></td>
+              <td class="mc-table__numeric">154</td>
+            </tr>
+            <tr>
+              <td style="font-family: var(--font-mono);">KD-02</td>
+              <td>Musa Bello</td>
+              <td>Kaduna North</td>
+              <td><span class="mc-status-badge mc-status-badge--active"><span>Waiting for review</span></span></td>
+              <td class="mc-table__numeric">92</td>
+            </tr>
+            <tr>
+              <td style="font-family: var(--font-mono);">SK-03</td>
+              <td>Zainab Aliyu</td>
+              <td>Sokoto North</td>
+              <td><span class="mc-status-badge mc-status-badge--success"><span>This helped</span></span></td>
+              <td class="mc-table__numeric">110</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 7. Modal Dialog Component -->
+    <section class="test-section" aria-labelledby="modal-heading">
+      <h2 class="test-section__title" id="modal-heading">Modal Dialog Component</h2>
+      <button type="button" class="mc-btn mc-btn--primary" id="open-test-modal" aria-haspopup="dialog">
+        <span>Trigger Modal Dialog</span>
+      </button>
+    </section>
+
+  </div>
+
+  <!-- Modal markup -->
+  <div class="mc-modal-backdrop" id="test-modal-backdrop" hidden>
+    <div class="mc-modal" role="dialog" aria-modal="true" aria-labelledby="harness-modal-title" aria-describedby="harness-modal-desc" tabindex="-1" id="test-modal-dialog">
+      <div class="mc-modal__header">
+        <h2 class="mc-modal__title" id="harness-modal-title">Admin Review Dialog</h2>
+        <button type="button" class="mc-modal__close-btn" id="close-test-modal" aria-label="Close dialog">
+          <svg class="icon" viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+      <div class="mc-modal__body" id="harness-modal-desc">
+        <p>This dialog uses <code>--surface-overlay</code> for scrim and traps keyboard focus inside.</p>
+      </div>
+      <div class="mc-modal__footer">
+        <button type="button" class="mc-btn mc-btn--secondary" id="cancel-test-modal">Cancel</button>
+        <button type="button" class="mc-btn mc-btn--primary" id="confirm-test-modal">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Automated In-Browser Verification Engine -->
+  <script>
+    // Color luminance and contrast math (WCAG 2.1 / 2.2)
+    function parseRGB(rgbStr) {
+      if (!rgbStr) return [0, 0, 0];
+      const match = rgbStr.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/i);
+      return match ? [parseInt(match[1]), parseInt(match[2]), parseInt(match[3])] : [0, 0, 0];
+    }
+
+    function sRGBtoLin(c) {
+      c = c / 255.0;
+      return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+    }
+
+    function getLuminance(r, g, b) {
+      return 0.2126 * sRGBtoLin(r) + 0.7152 * sRGBtoLin(g) + 0.0722 * sRGBtoLin(b);
+    }
+
+    function getContrast(rgb1, rgb2) {
+      const l1 = getLuminance(...rgb1);
+      const l2 = getLuminance(...rgb2);
+      const lighter = Math.max(l1, l2);
+      const darker = Math.min(l1, l2);
+      return (lighter + 0.05) / (darker + 0.05);
+    }
+
+    // Resolver to accurately compute actual browser RGB from CSS variables
+    let colorResolverEl = null;
+    function resolveVarRGB(varName) {
+      if (!colorResolverEl) {
+        colorResolverEl = document.createElement('div');
+        colorResolverEl.id = 'color-calc-resolver';
+        colorResolverEl.style.position = 'absolute';
+        colorResolverEl.style.visibility = 'hidden';
+        colorResolverEl.style.pointerEvents = 'none';
+        document.body.appendChild(colorResolverEl);
+      }
+      colorResolverEl.style.color = `var(${varName})`;
+      const computed = getComputedStyle(colorResolverEl).color;
+      return parseRGB(computed);
+    }
+
+    function rgbToHex(rgb) {
+      return '#' + rgb.map(x => x.toString(16).padStart(2, '0')).join('').toUpperCase();
+    }
+
+    // Diagnostics engine
+    window.runVerificationTests = function() {
+      const results = [];
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark' || 
+        (!document.documentElement.getAttribute('data-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      const themeName = isDark ? 'dark' : 'light';
+
+      function addResult(item, requirement, val, pass, context) {
+        results.push({ item, requirement, val, pass, context });
+      }
+
+      // 1. Text vs Surface
+      const bodyColor = resolveVarRGB('--text-primary');
+      const mutedColor = resolveVarRGB('--text-muted');
+      const surfaceColor = resolveVarRGB('--surface');
+      const surfaceBgColor = resolveVarRGB('--surface-bg');
+
+      const bodyVsSurf = getContrast(bodyColor, surfaceColor);
+      addResult('Body text vs surface', '>= 4.5:1', `${bodyVsSurf.toFixed(2)}:1 (${rgbToHex(bodyColor)} on ${rgbToHex(surfaceColor)})`, bodyVsSurf >= 4.5, themeName);
+
+      const mutedVsSurf = getContrast(mutedColor, surfaceColor);
+      addResult('Muted text vs surface', '>= 4.5:1', `${mutedVsSurf.toFixed(2)}:1 (${rgbToHex(mutedColor)} on ${rgbToHex(surfaceColor)})`, mutedVsSurf >= 4.5, themeName);
+
+      // 2. Primary Button fg vs bg
+      const btnPrimaryBg = resolveVarRGB('--button-primary-bg');
+      const btnPrimaryFg = resolveVarRGB('--button-primary-fg');
+      const btnPrimaryContrast = getContrast(btnPrimaryFg, btnPrimaryBg);
+      addResult('Primary button text vs bg', '>= 4.5:1', `${btnPrimaryContrast.toFixed(2)}:1 (${rgbToHex(btnPrimaryFg)} on ${rgbToHex(btnPrimaryBg)})`, btnPrimaryContrast >= 4.5, themeName);
+
+      // 3. Destructive Button fg vs bg
+      const btnDangerBg = resolveVarRGB('--button-danger-bg');
+      const btnDangerFg = resolveVarRGB('--button-danger-fg');
+      const btnDangerContrast = getContrast(btnDangerFg, btnDangerBg);
+      addResult('Destructive button text vs bg', '>= 4.5:1', `${btnDangerContrast.toFixed(2)}:1 (${rgbToHex(btnDangerFg)} on ${rgbToHex(btnDangerBg)})`, btnDangerContrast >= 4.5, themeName);
+
+      // 4. Feedback banners
+      const feedbacks = ['error', 'warning', 'info', 'success'];
+      feedbacks.forEach(f => {
+        const tint = resolveVarRGB(`--feedback-${f}-tint`);
+        const solid = resolveVarRGB(`--feedback-${f}`);
+        const textCont = getContrast(bodyColor, tint);
+        const iconCont = getContrast(solid, tint);
+        addResult(`Feedback ${f} text vs tint`, '>= 4.5:1', `${textCont.toFixed(2)}:1 (${rgbToHex(bodyColor)} on ${rgbToHex(tint)})`, textCont >= 4.5, themeName);
+        addResult(`Feedback ${f} icon/border vs tint`, '>= 3:1', `${iconCont.toFixed(2)}:1 (${rgbToHex(solid)} on ${rgbToHex(tint)})`, iconCont >= 3.0, themeName);
+      });
+
+      // 5. Status chips (all 6)
+      const statuses = ['danger', 'pending', 'active', 'success', 'neutral', 'verified'];
+      statuses.forEach(s => {
+        const solid = resolveVarRGB(`--status-${s}`);
+        const fg = resolveVarRGB(`--on-${s}`);
+        const chipCont = getContrast(fg, solid);
+        addResult(`Status chip ${s} label vs solid`, '>= 4.5:1', `${chipCont.toFixed(2)}:1 (${rgbToHex(fg)} on ${rgbToHex(solid)})`, chipCont >= 4.5, themeName);
+      });
+
+      // 6. Focus ring vs background
+      const focusRing = resolveVarRGB('--focus-ring');
+      const focusVsSurf = getContrast(focusRing, surfaceColor);
+      addResult('Focus ring vs surface', '>= 3:1', `${focusVsSurf.toFixed(2)}:1 (${rgbToHex(focusRing)} on ${rgbToHex(surfaceColor)})`, focusVsSurf >= 3.0, themeName);
+
+      // 7. Input borders vs surface
+      const inputBorder = resolveVarRGB('--input-border');
+      const inputBorderError = resolveVarRGB('--input-border-error');
+      const inputBorderCont = getContrast(inputBorder, surfaceColor);
+      const inputErrorCont = getContrast(inputBorderError, surfaceColor);
+      addResult('Input border vs surface', '>= 3:1', `${inputBorderCont.toFixed(2)}:1 (${rgbToHex(inputBorder)} on ${rgbToHex(surfaceColor)})`, inputBorderCont >= 3.0, themeName);
+      addResult('Error input border vs surface', '>= 3:1', `${inputErrorCont.toFixed(2)}:1 (${rgbToHex(inputBorderError)} on ${rgbToHex(surfaceColor)})`, inputErrorCont >= 3.0, themeName);
+
+      // 8. Alias chains resolution check
+      const aliasPairs = [
+        ['status-danger', 'feedback-error'],
+        ['status-pending', 'feedback-warning'],
+        ['status-active', 'feedback-info'],
+        ['status-success', 'feedback-success']
+      ];
+      aliasPairs.forEach(([stat, feed]) => {
+        const c1 = rgbToHex(resolveVarRGB(`--${stat}`));
+        const c2 = rgbToHex(resolveVarRGB(`--${feed}`));
+        const match = (c1 === c2);
+        addResult(`Alias chain: ${stat} == ${feed}`, 'Exact match', `${c1} == ${c2}`, match, themeName);
+      });
+
+      // 9. Interactive target size check (>= 48px by 48px)
+      const interactiveTargets = document.querySelectorAll('.mc-btn, .mc-lang-btn, .mc-theme-toggle__option, .mc-modal__close-btn, .mc-input, .mc-select');
+      let targetFailures = 0;
+      interactiveTargets.forEach(el => {
+        const rect = el.getBoundingClientRect();
+        if (rect.width > 0 && rect.height > 0) {
+          if (rect.width < 47.9 || rect.height < 47.9) {
+            targetFailures++;
+          }
+        }
+      });
+      addResult('Interactive target dimensions', 'Min 48px x 48px', targetFailures === 0 ? 'All >= 48px' : `${targetFailures} targets < 48px`, targetFailures === 0, 'mobile/desktop');
+
+      // 10. Horizontal scroll check
+      const bodyScrollWidth = document.body.scrollWidth;
+      const windowInnerWidth = window.innerWidth;
+      const noHorizontalScroll = bodyScrollWidth <= windowInnerWidth + 1;
+      addResult('Horizontal page body scroll', 'Zero sideways overflow', `body: ${bodyScrollWidth}px / window: ${windowInnerWidth}px`, noHorizontalScroll, 'viewport');
+
+      // Render to DOM table
+      const tbody = document.getElementById('test-results-tbody');
+      tbody.innerHTML = '';
+      let totalPassed = 0;
+      results.forEach(r => {
+        if (r.pass) totalPassed++;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><strong>${r.item}</strong></td>
+          <td><code>${r.requirement}</code></td>
+          <td><code>${r.val}</code></td>
+          <td><span class="${r.pass ? 'pass-badge' : 'fail-badge'}">${r.pass ? 'PASS' : 'FAIL'}</span></td>
+          <td><small>${r.context}</small></td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      document.getElementById('diagnostics-summary').innerHTML = `
+        <strong>Summary:</strong> ${totalPassed} / ${results.length} checks passed in <em>${themeName}</em> theme.
+      `;
+
+      return { totalPassed, totalTests: results.length, results };
+    };
+
+    // Modal Interaction Setup
+    (function() {
+      const openBtn = document.getElementById('open-test-modal');
+      const closeBtn = document.getElementById('close-test-modal');
+      const cancelBtn = document.getElementById('cancel-test-modal');
+      const confirmBtn = document.getElementById('confirm-test-modal');
+      const backdrop = document.getElementById('test-modal-backdrop');
+      const modal = document.getElementById('test-modal-dialog');
+      let lastActive = null;
+
+      function open() {
+        lastActive = document.activeElement;
+        backdrop.removeAttribute('hidden');
+        closeBtn.focus();
+      }
+      function close() {
+        backdrop.setAttribute('hidden', '');
+        if (lastActive) lastActive.focus();
+      }
+
+      openBtn.addEventListener('click', open);
+      closeBtn.addEventListener('click', close);
+      cancelBtn.addEventListener('click', close);
+      confirmBtn.addEventListener('click', close);
+      backdrop.addEventListener('click', e => { if (e.target === backdrop) close(); });
+
+      document.addEventListener('keydown', e => {
+        if (backdrop.hasAttribute('hidden')) return;
+        if (e.key === 'Escape') { e.preventDefault(); close(); return; }
+        if (e.key === 'Tab') {
+          const focusables = modal.querySelectorAll('button, [tabindex]:not([tabindex="-1"])');
+          const first = focusables[0];
+          const last = focusables[focusables.length - 1];
+          if (e.shiftKey && document.activeElement === first) {
+            e.preventDefault(); last.focus();
+          } else if (!e.shiftKey && document.activeElement === last) {
+            e.preventDefault(); first.focus();
+          }
+        }
+      });
+    })();
+
+    // Theme toggle interaction
+    (function() {
+      const themeBtns = document.querySelectorAll('.mc-theme-toggle__option');
+      function syncThemeUI(curr) {
+        themeBtns.forEach(b => {
+          const val = b.getAttribute('data-theme-value');
+          const active = (val === curr);
+          b.setAttribute('aria-checked', active ? 'true' : 'false');
+          b.classList.toggle('is-active', active);
+        });
+      }
+      syncThemeUI(getStoredTheme());
+      themeBtns.forEach(b => {
+        b.addEventListener('click', () => {
+          const v = b.getAttribute('data-theme-value');
+          setTheme(v);
+          syncThemeUI(v);
+          window.runVerificationTests();
+        });
+      });
+    })();
+
+    // Grayscale Toggle
+    document.getElementById('btn-toggle-mono').addEventListener('click', () => {
+      document.documentElement.classList.toggle('simulate-monochrome');
+    });
+
+    // Run tests button
+    document.getElementById('btn-run-tests').addEventListener('click', () => {
+      window.runVerificationTests();
+    });
+
+    // Auto-run on load
+    window.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => {
+        window.runVerificationTests();
+      }, 100);
+    });
+  </script>
+</body>
+</html>

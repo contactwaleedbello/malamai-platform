@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Malamai Circle - Theme Toggle Component</title>
+  <link rel="stylesheet" href="../tokens/theme.css">
+  <link rel="stylesheet" href="components.css">
+  <script src="../theme-helper.js"></script>
+</head>
+<body style="padding: var(--space-6); background: var(--surface-bg);">
+
+  <main style="max-width: var(--prose-max); margin: 0 auto; background: var(--surface); padding: var(--space-6); border-radius: var(--radius-lg); border: 1px solid var(--border-subtle);">
+    <h1 style="font-size: var(--fs-h2); line-height: var(--lh-h2); margin-top: 0; color: var(--text-primary);">Theme Toggle</h1>
+    <p style="color: var(--text-muted); font-size: var(--fs-body); margin-bottom: var(--space-6);">
+      Accessible Light, Dark, System toggle using the Step 3 theme helper. Clear label, visible 3px focus ring, min 48px touch targets, and persistence across page reloads.
+    </p>
+
+    <!-- Theme Toggle Control (Radio Group / Segmented Control) -->
+    <div class="mc-theme-control" role="region" aria-label="Appearance Mode">
+      <span id="theme-label" style="display: block; font-size: var(--fs-small); font-weight: var(--fw-semibold); margin-bottom: var(--space-2); color: var(--text-primary);">
+        Color Theme / Yanayin Launi:
+      </span>
+
+      <div class="mc-theme-toggle" role="radiogroup" aria-labelledby="theme-label">
+        <!-- Light Option -->
+        <button 
+          type="button" 
+          role="radio" 
+          aria-checked="false" 
+          class="mc-theme-toggle__option" 
+          id="theme-btn-light" 
+          data-theme-value="light"
+          aria-label="Light theme / Haske"
+        >
+          <svg class="icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+          <span>Light</span>
+        </button>
+
+        <!-- Dark Option -->
+        <button 
+          type="button" 
+          role="radio" 
+          aria-checked="false" 
+          class="mc-theme-toggle__option" 
+          id="theme-btn-dark" 
+          data-theme-value="dark"
+          aria-label="Dark theme / Duhu"
+        >
+          <svg class="icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+          <span>Dark</span>
+        </button>
+
+        <!-- System Option -->
+        <button 
+          type="button" 
+          role="radio" 
+          aria-checked="true" 
+          class="mc-theme-toggle__option" 
+          id="theme-btn-system" 
+          data-theme-value="system"
+          aria-label="System theme / Na'ura"
+        >
+          <svg class="icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+            <line x1="8" y1="21" x2="16" y2="21"></line>
+            <line x1="12" y1="17" x2="12" y2="21"></line>
+          </svg>
+          <span>System</span>
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    (function() {
+      const buttons = document.querySelectorAll('.mc-theme-toggle__option');
+
+      function updateUI(currentTheme) {
+        buttons.forEach(btn => {
+          const val = btn.getAttribute('data-theme-value');
+          const isSelected = (val === currentTheme);
+          btn.setAttribute('aria-checked', isSelected ? 'true' : 'false');
+          if (isSelected) {
+            btn.classList.add('is-active');
+          } else {
+            btn.classList.remove('is-active');
+          }
+        });
+      }
+
+      // Initialize UI on load
+      const initialTheme = getStoredTheme();
+      updateUI(initialTheme);
+
+      // Handle selection
+      buttons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const val = btn.getAttribute('data-theme-value');
+          setTheme(val);
+          updateUI(val);
+        });
+      });
+    })();
+  </script>
+
+</body>
+</html>

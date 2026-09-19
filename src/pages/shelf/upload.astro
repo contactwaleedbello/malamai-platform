@@ -1,0 +1,818 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getCurrentUser, isReadOnlyMode } from "../../lib/data.js";
+
+let user = null;
+try {
+  user = await getCurrentUser();
+} catch (e) {
+  user = null;
+}
+
+const isReader = !user || user.role === "Reader";
+const approvedCount = user?.approved_uploads_count || 0;
+const isReviewPending = approvedCount < 3;
+const readOnly = isReadOnlyMode();
+
+const subjects = [
+  "Mathematics",
+  "Basic Science",
+  "English Language",
+  "Hausa",
+  "Social Studies",
+  "Agricultural Science",
+  "Basic Technology",
+  "Chemistry",
+  "Biology",
+  "Physics"
+];
+
+const classLevels = [
+  "Primary 1", "Primary 2", "Primary 3", "Primary 4", "Primary 5", "Primary 6",
+  "JSS 1", "JSS 2", "JSS 3",
+  "SS 1", "SS 2", "SS 3"
+];
+---
+
+<BaseLayout title="Add a Resource / Ƙara Kayan Aiki" activeNav="resources">
+
+  <!-- Back Link -->
+  <div style="margin-bottom: var(--space-4);">
+    <a href="/shelf" class="mc-back-btn">
+      <svg class="icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <line x1="19" y1="12" x2="5" y2="12"></line>
+        <polyline points="12 19 5 12 12 5"></polyline>
+      </svg>
+      <span>Back to resource shelf</span>
+    </a>
+  </div>
+
+  <div class="mc-upload-container">
+    
+    <header class="mc-upload-header">
+      <h1 class="mc-upload-title">Add a Resource / Ƙara Kayan Aiki</h1>
+      <p class="mc-upload-subtitle">
+        Share a lesson plan, practical worksheet, or teaching aid that worked in your classroom.
+      </p>
+    </header>
+
+    <!-- Read-Only Mode Gate (Rule ADM-09) -->
+    {readOnly ? (
+      <div class="mc-feedback mc-feedback--warning" style="margin-bottom: var(--space-6);" role="alert">
+        <h2 class="mc-feedback__title">Malamai Circle is currently in read-only mode.</h2>
+        <p class="mc-feedback__message">
+          Uploading new teaching materials is temporarily paused. You can still download and save existing files to your phone.
+        </p>
+        <a href="/shelf" class="mc-btn mc-btn--secondary" style="margin-top: var(--space-3);">Browse Resource Shelf</a>
+      </div>
+    ) : isReader ? (
+      <div class="mc-reader-gate">
+        <svg class="icon" viewBox="0 0 24 24" width="32" height="32" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+        <div>
+          <h2>Join to share resources</h2>
+          <p>Readers can download worksheets freely. To contribute teaching resources, join Malamai Circle with your username and PIN.</p>
+          <a href="/join" class="mc-btn mc-btn--primary">Join as a teacher</a>
+        </div>
+      </div>
+    ) : (
+      <div>
+
+        <!-- First-Three-Uploads Moderator Notice (PRD Rule F2-06) -->
+        {isReviewPending && (
+          <div class="mc-moderator-banner" role="status">
+            <svg class="icon" viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+            <div class="mc-moderator-banner__text">
+              <strong>Waiting for review / Ana jiran dubawa</strong>
+              <span>New contributor policy: Your first 3 uploads will appear on the shelf once checked by a moderator to keep teaching materials safe and clean.</span>
+            </div>
+          </div>
+        )}
+
+        <!-- Upload Error / Retry Banner (PRD Error State) -->
+        <div class="mc-drop-alert" id="upload-error-alert" style="display: none;" role="alert">
+          <svg class="icon" viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          <div class="mc-drop-alert__text">
+            <strong>Upload failed. We kept your details.</strong>
+            <span>Tap Retry when your cellular connection returns.</span>
+          </div>
+          <button type="button" class="mc-btn mc-btn--primary mc-drop-retry-btn" id="btn-upload-retry">
+            Retry
+          </button>
+        </div>
+
+        <!-- FORM -->
+        <form id="resource-upload-form" class="mc-upload-form" novalidate>
+          
+          <!-- Title -->
+          <div class="mc-form-group">
+            <label for="res-title" class="mc-label">
+              <span>Resource Title</span>
+              <span class="mc-required-mark">*</span>
+            </label>
+            <input 
+              type="text" 
+              id="res-title" 
+              name="title" 
+              class="mc-input" 
+              placeholder="e.g. Ratio and Proportion Local Activity Sheet, JSS 2" 
+              minlength="10" 
+              maxlength="120" 
+              required 
+            />
+            <div class="mc-field-meta">
+              <span class="mc-helper-text">10 to 120 characters. Include subject and topic.</span>
+              <span class="mc-char-count" id="title-count">0 / 120</span>
+            </div>
+            <span class="mc-field-error" id="title-error" style="display: none;">Title must be at least 10 characters long.</span>
+          </div>
+
+          <!-- Subject & Class Level -->
+          <div class="mc-form-row">
+            <div class="mc-form-group" style="flex: 1; margin-bottom: 0;">
+              <label for="res-subject" class="mc-label">
+                <span>Subject</span>
+                <span class="mc-required-mark">*</span>
+              </label>
+              <div class="mc-select-wrapper">
+                <select id="res-subject" name="subject" class="mc-select" required>
+                  <option value="">Select subject...</option>
+                  {subjects.map((sub) => (
+                    <option value={sub}>{sub}</option>
+                  ))}
+                </select>
+                <svg class="icon mc-select-icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              </div>
+              <span class="mc-field-error" id="subject-error" style="display: none;">Please select a subject.</span>
+            </div>
+
+            <div class="mc-form-group" style="flex: 1; margin-bottom: 0;">
+              <label for="res-class" class="mc-label">
+                <span>Class Level</span>
+                <span class="mc-required-mark">*</span>
+              </label>
+              <div class="mc-select-wrapper">
+                <select id="res-class" name="classLevel" class="mc-select" required>
+                  <option value="">Select class level...</option>
+                  {classLevels.map((lvl) => (
+                    <option value={lvl}>{lvl}</option>
+                  ))}
+                </select>
+                <svg class="icon mc-select-icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              </div>
+              <span class="mc-field-error" id="class-error" style="display: none;">Please select a class level.</span>
+            </div>
+          </div>
+
+          <!-- Language -->
+          <div class="mc-form-group">
+            <label class="mc-label">
+              <span>Language of resource</span>
+              <span class="mc-required-mark">*</span>
+            </label>
+            <div class="mc-lang-radio-group">
+              <label class="mc-lang-radio-label">
+                <input type="radio" name="language" value="English" checked class="mc-radio" />
+                <span>English</span>
+              </label>
+              <label class="mc-lang-radio-label">
+                <input type="radio" name="language" value="Hausa" class="mc-radio" />
+                <span>Harshen Hausa</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Source Choice (PRD Rule F2-02 & F2-03) -->
+          <div class="mc-form-group">
+            <label for="res-source-choice" class="mc-label">
+              <span>Source Choice (Where did this come from?)</span>
+              <span class="mc-required-mark">*</span>
+            </label>
+            <div class="mc-select-wrapper">
+              <select id="res-source-choice" name="sourceChoice" class="mc-select" required>
+                <option value="original">I made this (defaults to CC-BY-NC license)</option>
+                <option value="openly_licensed">Openly licensed (reproduced with credit and link)</option>
+                <option value="official">Official document (link only, no file upload)</option>
+              </select>
+              <svg class="icon mc-select-icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </div>
+          </div>
+
+          <!-- Conditional Inputs for Openly Licensed -->
+          <div id="openly-licensed-fields" style="display: none;" class="mc-conditional-box">
+            <div class="mc-form-group">
+              <label for="res-credit-line" class="mc-label">
+                <span>Credit Line (Original Author / Publisher)</span>
+                <span class="mc-required-mark">*</span>
+              </label>
+              <input type="text" id="res-credit-line" name="creditLine" class="mc-input" placeholder="e.g. Adapted from Open Education Nigeria under CC-BY" />
+            </div>
+            <div class="mc-form-group" style="margin-bottom: 0;">
+              <label for="res-source-link" class="mc-label">
+                <span>Original Link / Website</span>
+                <span class="mc-required-mark">*</span>
+              </label>
+              <input type="url" id="res-source-link" name="sourceLink" class="mc-input" placeholder="https://example.org/resource" />
+            </div>
+          </div>
+
+          <!-- Conditional Inputs for Official Document -->
+          <div id="official-doc-fields" style="display: none;" class="mc-conditional-box">
+            <div class="mc-form-group" style="margin-bottom: 0;">
+              <label for="res-official-link" class="mc-label">
+                <span>Official Document Web Link (NERDC / Ministry / UBEC)</span>
+                <span class="mc-required-mark">*</span>
+              </label>
+              <input type="url" id="res-official-link" name="officialLink" class="mc-input" placeholder="https://education.gov.ng/curriculum" />
+              <span class="mc-helper-text">Official documents take a link only, no file is stored.</span>
+            </div>
+          </div>
+
+          <!-- File Upload Section (PDF or Image under 2 MB, Rule F2-01) -->
+          <div class="mc-form-group" id="file-upload-group">
+            <label for="res-file-input" class="mc-label">
+              <span>Select File (PDF or Image, max 2 MB)</span>
+              <span class="mc-required-mark" id="file-required-mark">*</span>
+            </label>
+
+            <input 
+              type="file" 
+              id="res-file-input" 
+              name="file" 
+              class="mc-file-input" 
+              accept=".pdf,image/png,image/jpeg,image/webp" 
+              required 
+            />
+
+            <!-- Explicit Size Exceeded Error Alert (PRD Error State Rule) -->
+            <div class="mc-file-error-alert" id="size-cap-error" style="display: none;" role="alert">
+              <svg class="icon" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+              </svg>
+              <span>That file is over 2 MB. Please upload a smaller PDF or picture.</span>
+            </div>
+
+            <!-- Unsupported Format Error -->
+            <div class="mc-file-error-alert" id="format-error" style="display: none;" role="alert">
+              <svg class="icon" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+              </svg>
+              <span>Only PDF files and pictures can be shared on Malamai Circle.</span>
+            </div>
+
+            <div class="mc-file-helper-box">
+              <span>Accepted: PDF, PNG, JPG under 2 MB. We compress images before storing to save phone data.</span>
+            </div>
+          </div>
+
+          <!-- Submit Button -->
+          <div class="mc-form-actions">
+            <button type="submit" class="mc-btn mc-btn--primary mc-submit-btn" id="btn-submit-upload">
+              <svg class="icon" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="17 8 12 3 7 8"></polyline>
+                <line x1="12" y1="3" x2="12" y2="15"></line>
+              </svg>
+              <span id="submit-upload-label">Upload to shelf / Tura kayan aiki</span>
+            </button>
+          </div>
+
+        </form>
+
+      </div>
+    )}
+
+  </div>
+
+</BaseLayout>
+
+<!-- Client-side Script: File Size Guard, Format Guard, Conditional Inputs & Submit -->
+<script>
+  import { uploadResource } from "../../lib/data.js";
+
+  const form = document.getElementById('resource-upload-form');
+  if (form) {
+    const fileInput = document.getElementById('res-file-input') as HTMLInputElement | null;
+    const sizeError = document.getElementById('size-cap-error');
+    const formatError = document.getElementById('format-error');
+    const sourceChoiceSelect = document.getElementById('res-source-choice') as HTMLSelectElement | null;
+    const openFields = document.getElementById('openly-licensed-fields');
+    const officialFields = document.getElementById('official-doc-fields');
+    const fileGroup = document.getElementById('file-upload-group');
+    const fileReqMark = document.getElementById('file-required-mark');
+    const titleInput = document.getElementById('res-title') as HTMLInputElement | null;
+    const titleCount = document.getElementById('title-count');
+    const titleError = document.getElementById('title-error');
+    const subjectSelect = document.getElementById('res-subject') as HTMLSelectElement | null;
+    const subjectError = document.getElementById('subject-error');
+    const classSelect = document.getElementById('res-class') as HTMLSelectElement | null;
+    const classError = document.getElementById('class-error');
+    const errorAlert = document.getElementById('upload-error-alert');
+    const retryBtn = document.getElementById('btn-upload-retry');
+    const submitBtn = document.getElementById('btn-submit-upload') as HTMLButtonElement | null;
+    const submitLabel = document.getElementById('submit-upload-label');
+
+    // 1. Title Character Counter
+    titleInput?.addEventListener('input', () => {
+      const len = titleInput.value.length;
+      if (titleCount) titleCount.textContent = `${len} / 120`;
+      if (len >= 10 && titleError) titleError.style.display = 'none';
+    });
+
+    // 2. Source Choice Conditional Fields (Rule F2-02 & F2-03)
+    function handleSourceChoice() {
+      const val = sourceChoiceSelect?.value || 'original';
+      if (val === 'openly_licensed') {
+        if (openFields) openFields.style.display = 'block';
+        if (officialFields) officialFields.style.display = 'none';
+        if (fileGroup) fileGroup.style.display = 'flex';
+        if (fileInput) fileInput.required = true;
+        if (fileReqMark) fileReqMark.style.display = 'inline';
+      } else if (val === 'official') {
+        if (openFields) openFields.style.display = 'none';
+        if (officialFields) officialFields.style.display = 'block';
+        if (fileGroup) fileGroup.style.display = 'none';
+        if (fileInput) {
+          fileInput.required = false;
+          fileInput.value = '';
+        }
+        if (sizeError) sizeError.style.display = 'none';
+        if (formatError) formatError.style.display = 'none';
+      } else {
+        // "original" ("I made this")
+        if (openFields) openFields.style.display = 'none';
+        if (officialFields) officialFields.style.display = 'none';
+        if (fileGroup) fileGroup.style.display = 'flex';
+        if (fileInput) fileInput.required = true;
+        if (fileReqMark) fileReqMark.style.display = 'inline';
+      }
+    }
+    sourceChoiceSelect?.addEventListener('change', handleSourceChoice);
+    handleSourceChoice();
+
+    // 3. File Input Validation (Rule F2-01: PDF and Image only, under 2 MB)
+    const MAX_SIZE_BYTES = 2 * 1024 * 1024; // 2 MB
+
+    fileInput?.addEventListener('change', () => {
+      if (!fileInput.files || fileInput.files.length === 0) return;
+      const file = fileInput.files[0];
+
+      // Format check
+      const validTypes = ['application/pdf', 'image/png', 'image/jpeg', 'image/webp'];
+      const validExtensions = ['.pdf', '.png', '.jpg', '.jpeg', '.webp'];
+      const fileNameLower = file.name.toLowerCase();
+      const hasValidExt = validExtensions.some(ext => fileNameLower.endsWith(ext));
+
+      if (!validTypes.includes(file.type) && !hasValidExt) {
+        if (formatError) formatError.style.display = 'flex';
+        if (sizeError) sizeError.style.display = 'none';
+        fileInput.value = '';
+        return;
+      } else {
+        if (formatError) formatError.style.display = 'none';
+      }
+
+      // Size check (> 2 MB rejected with PRD error)
+      if (file.size > MAX_SIZE_BYTES) {
+        if (sizeError) sizeError.style.display = 'flex';
+        fileInput.value = ''; // reject file
+        return;
+      } else {
+        if (sizeError) sizeError.style.display = 'none';
+      }
+    });
+
+    // 4. Submit Handler
+    async function handleUpload() {
+      let isValid = true;
+
+      const title = titleInput?.value.trim() || '';
+      if (title.length < 10) {
+        if (titleError) titleError.style.display = 'block';
+        isValid = false;
+      } else {
+        if (titleError) titleError.style.display = 'none';
+      }
+
+      const subject = subjectSelect?.value || '';
+      if (!subject) {
+        if (subjectError) subjectError.style.display = 'block';
+        isValid = false;
+      } else {
+        if (subjectError) subjectError.style.display = 'none';
+      }
+
+      const classLevel = classSelect?.value || '';
+      if (!classLevel) {
+        if (classError) classError.style.display = 'block';
+        isValid = false;
+      } else {
+        if (classError) classError.style.display = 'none';
+      }
+
+      const sourceChoice = sourceChoiceSelect?.value || 'original';
+      if (sourceChoice !== 'official') {
+        if (!fileInput?.files || fileInput.files.length === 0) {
+          alert("Please select a PDF or image file under 2 MB.");
+          isValid = false;
+        }
+      }
+
+      if (!isValid) return;
+
+      const language = form.querySelector('input[name="language"]:checked')?.value || 'English';
+
+      if (errorAlert) errorAlert.style.display = 'none';
+      if (submitBtn) submitBtn.disabled = true;
+      if (submitLabel) submitLabel.textContent = "Uploading...";
+
+      try {
+        await uploadResource({
+          title,
+          subject,
+          classLevel,
+          language,
+          sourceChoice
+        });
+
+        // Redirect to shelf where new resource appears
+        window.location.href = '/shelf';
+
+      } catch (err) {
+        // PRD Error / Retry state
+        if (errorAlert) errorAlert.style.display = 'flex';
+      } finally {
+        if (submitBtn) submitBtn.disabled = false;
+        if (submitLabel) submitLabel.textContent = "Upload to shelf / Tura kayan aiki";
+      }
+    }
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      handleUpload();
+    });
+
+    retryBtn?.addEventListener('click', () => {
+      handleUpload();
+    });
+  }
+</script>
+
+<style>
+  .mc-back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: var(--fs-small);
+    font-weight: var(--fw-semibold);
+    color: var(--brand-primary);
+    text-decoration: none;
+    min-height: var(--touch-min);
+  }
+
+  .mc-back-btn:hover {
+    text-decoration: underline;
+  }
+
+  .mc-upload-container {
+    background: var(--surface);
+    max-width: 680px;
+    margin: 0 auto;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    padding: var(--space-6);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .mc-upload-header {
+    margin-bottom: var(--space-6);
+    padding-bottom: var(--space-4);
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .mc-upload-title {
+    font-size: var(--fs-title-lg);
+    line-height: var(--lh-tight);
+    font-weight: var(--fw-bold);
+    color: var(--text-primary);
+    margin: 0 0 var(--space-1) 0;
+  }
+
+  .mc-upload-subtitle {
+    font-size: var(--fs-body);
+    color: var(--text-muted);
+    margin: 0;
+    line-height: var(--lh-body);
+  }
+
+  /* Reader Gate */
+  .mc-reader-gate {
+    background: var(--surface-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-6);
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-4);
+  }
+
+  .mc-reader-gate svg {
+    color: var(--brand-primary);
+    flex-shrink: 0;
+    margin-top: 4px;
+  }
+
+  .mc-reader-gate h2 {
+    font-size: var(--fs-title-sm);
+    font-weight: var(--fw-bold);
+    color: var(--text-primary);
+    margin: 0 0 var(--space-2) 0;
+  }
+
+  .mc-reader-gate p {
+    font-size: var(--fs-body);
+    color: var(--text-muted);
+    margin: 0 0 var(--space-4) 0;
+    line-height: var(--lh-body);
+  }
+
+  /* Moderator Banner */
+  .mc-moderator-banner {
+    background: var(--warning-subtle);
+    border: 1px solid var(--warning-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+    margin-bottom: var(--space-5);
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+  }
+
+  .mc-moderator-banner svg {
+    color: var(--warning-text);
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .mc-moderator-banner__text {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: var(--fs-small);
+    color: var(--warning-text);
+    line-height: var(--lh-small);
+  }
+
+  /* Drop Alert */
+  .mc-drop-alert {
+    background: var(--danger-subtle);
+    border: 1px solid var(--danger-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+    margin-bottom: var(--space-5);
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    flex-wrap: wrap;
+  }
+
+  .mc-drop-alert svg {
+    color: var(--danger);
+    flex-shrink: 0;
+  }
+
+  .mc-drop-alert__text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: var(--fs-small);
+    color: var(--danger-text);
+    flex: 1;
+    min-width: 200px;
+  }
+
+  .mc-drop-retry-btn {
+    min-height: 40px;
+    padding: var(--space-1) var(--space-4);
+  }
+
+  /* Form Elements */
+  .mc-upload-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+  }
+
+  .mc-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+
+  .mc-form-row {
+    display: flex;
+    gap: var(--space-3);
+    flex-wrap: wrap;
+  }
+
+  .mc-label {
+    font-size: var(--fs-small);
+    font-weight: var(--fw-bold);
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .mc-required-mark {
+    color: var(--danger);
+  }
+
+  .mc-input {
+    width: 100%;
+    box-sizing: border-box;
+    font-family: inherit;
+    font-size: var(--fs-body);
+    padding: var(--space-3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--background);
+    color: var(--text-primary);
+    min-height: var(--touch-min);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .mc-input:focus {
+    outline: none;
+    border-color: var(--brand-primary);
+    box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.15);
+  }
+
+  .mc-field-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: var(--fs-micro);
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  .mc-field-error {
+    font-size: var(--fs-micro);
+    font-weight: var(--fw-bold);
+    color: var(--danger);
+    margin-top: 2px;
+  }
+
+  .mc-select-wrapper {
+    position: relative;
+    width: 100%;
+  }
+
+  .mc-select {
+    width: 100%;
+    appearance: none;
+    -webkit-appearance: none;
+    font-family: inherit;
+    font-size: var(--fs-body);
+    padding: var(--space-3) var(--space-8) var(--space-3) var(--space-3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--background);
+    color: var(--text-primary);
+    min-height: var(--touch-min);
+    cursor: pointer;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .mc-select:focus {
+    outline: none;
+    border-color: var(--brand-primary);
+    box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.15);
+  }
+
+  .mc-select-icon {
+    position: absolute;
+    right: var(--space-3);
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    color: var(--text-muted);
+  }
+
+  .mc-lang-radio-group {
+    display: flex;
+    gap: var(--space-5);
+    align-items: center;
+    padding: var(--space-2) 0;
+  }
+
+  .mc-lang-radio-label {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: var(--fs-body);
+    color: var(--text-primary);
+    cursor: pointer;
+    min-height: var(--touch-min);
+  }
+
+  .mc-radio {
+    width: 20px;
+    height: 20px;
+    accent-color: var(--brand-primary);
+    cursor: pointer;
+  }
+
+  .mc-conditional-box {
+    background: var(--surface-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  /* File Input Dropzone Styling */
+  .mc-file-input {
+    font-size: var(--fs-small);
+    color: var(--text-primary);
+    padding: var(--space-4);
+    border: 2px dashed var(--border-focus);
+    border-radius: var(--radius-lg);
+    background: var(--surface-bg);
+    cursor: pointer;
+    min-height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    box-sizing: border-box;
+    transition: border-color 0.15s ease, background 0.15s ease;
+  }
+
+  .mc-file-input:hover {
+    border-color: var(--brand-primary);
+    background: var(--surface);
+  }
+
+  .mc-file-error-alert {
+    background: var(--danger-subtle);
+    border: 1px solid var(--danger-border);
+    color: var(--danger-text);
+    padding: var(--space-3);
+    border-radius: var(--radius-md);
+    font-size: var(--fs-small);
+    font-weight: var(--fw-semibold);
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-top: var(--space-2);
+  }
+
+  .mc-file-error-alert svg {
+    flex-shrink: 0;
+  }
+
+  .mc-file-helper-box {
+    font-size: var(--fs-micro);
+    color: var(--text-muted);
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .mc-form-actions {
+    margin-top: var(--space-4);
+    display: flex;
+    justify-content: flex-end;
+    border-top: 1px solid var(--border-subtle);
+    padding-top: var(--space-5);
+  }
+
+  .mc-submit-btn {
+    min-height: var(--touch-min);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: var(--fs-body);
+    font-weight: var(--fw-bold);
+    padding: var(--space-2) var(--space-6);
+  }
+</style>
