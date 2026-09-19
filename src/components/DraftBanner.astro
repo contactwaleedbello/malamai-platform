@@ -1,0 +1,35 @@
+---
+interface Props {
+  draftKey: string;
+}
+
+const { draftKey } = Astro.props;
+---
+
+<div class="mc-draft-banner" id={`draft-banner-${draftKey}`} style="display: none;" role="status">
+  <div style="display: flex; align-items: center; gap: var(--space-2);">
+    <svg class="icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="4" fill="currentColor"></circle>
+    </svg>
+    <span style="font-weight: var(--fw-semibold); font-size: var(--fs-small);">Draft, not posted</span>
+    <span style="font-size: var(--fs-small); color: var(--text-muted);">(Saved locally on this phone)</span>
+  </div>
+  <div style="display: flex; gap: var(--space-2); margin-top: var(--space-2);">
+    <button type="button" class="mc-btn mc-btn--secondary" id={`draft-restore-${draftKey}`} style="min-height: 40px; padding: 4px 12px; font-size: var(--fs-small);">
+      Restore text
+    </button>
+    <button type="button" class="mc-btn mc-btn--secondary" id={`draft-discard-${draftKey}`} style="min-height: 40px; padding: 4px 12px; font-size: var(--fs-small); color: var(--feedback-error);">
+      Discard
+    </button>
+  </div>
+</div>
+
+<style>
+  .mc-draft-banner {
+    background: var(--surface-bg);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-md);
+    padding: var(--space-3);
+    margin-bottom: var(--space-4);
+  }
+</style>

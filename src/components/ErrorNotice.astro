@@ -1,0 +1,30 @@
+---
+interface Props {
+  title?: string;
+  message: string;
+  retryAction?: boolean;
+}
+
+const { 
+  title = "Error", 
+  message, 
+  retryAction = true 
+} = Astro.props;
+---
+
+<aside class="mc-feedback mc-feedback--error" role="alert" style="margin-bottom: var(--space-4);">
+  <svg class="icon mc-feedback__icon" viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <circle cx="12" cy="12" r="10"></circle>
+    <line x1="12" y1="8" x2="12" y2="12"></line>
+    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+  </svg>
+  <div class="mc-feedback__body">
+    <strong class="mc-feedback__title">{title}</strong>
+    <p class="mc-feedback__message">{message}</p>
+    {retryAction && (
+      <button type="button" class="mc-btn mc-btn--secondary" onclick="window.location.reload();" style="min-height: 40px; margin-top: var(--space-2); padding: 4px 16px;">
+        <span>Tap Retry</span>
+      </button>
+    )}
+  </div>
+</aside>

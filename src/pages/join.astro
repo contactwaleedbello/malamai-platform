@@ -1,0 +1,667 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import DraftBanner from "../components/DraftBanner.astro";
+import { getStates, NIGERIA_STATES_AND_LGAS } from "../lib/data.js";
+
+const states = getStates();
+---
+
+<BaseLayout title="Join Malamai Circle" activeNav="profile">
+
+  <section class="mc-join-container">
+    <div class="mc-join-header">
+      <h1 class="mc-page-title">
+        Join Malamai Circle / Shiga
+      </h1>
+      <p class="mc-page-subtitle">
+        Create your free teacher account. No payment details, no NIN required.
+      </p>
+    </div>
+
+    <!-- Sign In Shortcut for Existing Members -->
+    <div class="mc-existing-member-bar">
+      <span>Already have an account?</span>
+      <button type="button" class="mc-link-btn" data-action="open-signin" id="btn-open-signin-from-join">
+        Sign in with username &amp; PIN
+      </button>
+    </div>
+
+    <DraftBanner draftKey="join_form" />
+
+    <!-- General Error Alert -->
+    <div id="join-error-alert" class="mc-feedback mc-feedback--error" style="display: none; margin-bottom: var(--space-4);" role="alert">
+      <svg class="icon mc-feedback__icon" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+      <div class="mc-feedback__body">
+        <strong class="mc-feedback__title">Could not create account</strong>
+        <p class="mc-feedback__message" id="join-error-message">Please check your inputs and retry.</p>
+      </div>
+    </div>
+
+    <!-- NIN Rejection Banner (PRD Rule F4-04: Strict Block) -->
+    <div id="nin-error-banner" class="mc-feedback mc-feedback--error" style="display: none; margin-bottom: var(--space-4);" role="alert">
+      <svg class="icon mc-feedback__icon" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+      <div class="mc-feedback__body">
+        <strong class="mc-feedback__title">National Identification Number (NIN) Refused</strong>
+        <p class="mc-feedback__message">
+          Do not enter your NIN. Malamai Circle only uses your TRCN teacher registration number.
+        </p>
+      </div>
+    </div>
+
+    <!-- TRCN Timeout Banner (PRD Section 5.4) -->
+    <div id="trcn-timeout-banner" class="mc-feedback mc-feedback--info" style="display: none; margin-bottom: var(--space-4);" role="status">
+      <svg class="icon mc-feedback__icon" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+      <div class="mc-feedback__body">
+        <strong class="mc-feedback__title">TRCN Check Delayed</strong>
+        <p class="mc-feedback__message">
+          We could not check this now. Tap Check Again later in settings.
+        </p>
+      </div>
+    </div>
+
+    <form id="join-form" method="post" novalidate>
+
+      <!-- SECTION 1: LOGIN CREDENTIALS -->
+      <fieldset class="mc-form-fieldset">
+        <legend class="mc-fieldset-legend">Account Login</legend>
+
+        <div class="mc-grid-2">
+          <!-- Username -->
+          <div class="mc-form-group">
+            <label for="reg-username" class="mc-label">
+              <span>Username</span>
+              <span class="mc-label__required">*</span>
+            </label>
+            <input 
+              type="text" 
+              id="reg-username" 
+              name="username" 
+              class="mc-input" 
+              placeholder="e.g. musa_science" 
+              required 
+              minlength="3" 
+              maxlength="20"
+              autocomplete="off"
+            />
+            <span class="mc-helper-text">3 to 20 letters, numbers, or underscores.</span>
+          </div>
+
+          <!-- 6-Digit PIN (Masked, No autofill) -->
+          <div class="mc-form-group">
+            <label for="reg-pin" class="mc-label">
+              <span>6-Digit PIN</span>
+              <span class="mc-label__required">*</span>
+            </label>
+            <input 
+              type="password" 
+              id="reg-pin" 
+              name="pin" 
+              class="mc-input" 
+              placeholder="••••••" 
+              required 
+              pattern="[0-9]{6}" 
+              inputmode="numeric" 
+              maxlength="6"
+              autocomplete="new-password"
+              style="letter-spacing: 4px;"
+            />
+            <span class="mc-helper-text">Exactly 6 numbers. Never forgotten or autofilled.</span>
+          </div>
+        </div>
+      </fieldset>
+
+      <!-- SECTION 2: LOCATION & SCHOOL -->
+      <fieldset class="mc-form-fieldset">
+        <legend class="mc-fieldset-legend">Location &amp; School</legend>
+
+        <div class="mc-grid-2">
+          <!-- State -->
+          <div class="mc-form-group">
+            <label for="reg-state" class="mc-label">
+              <span>State</span>
+              <span class="mc-label__required">*</span>
+            </label>
+            <div class="mc-select-wrapper">
+              <select id="reg-state" name="state" class="mc-select" required>
+                <option value="">Select state...</option>
+                {states.map((s) => (
+                  <option value={s} selected={s === "Kaduna"}>{s}</option>
+                ))}
+              </select>
+              <svg class="icon mc-select-icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </div>
+          </div>
+
+          <!-- Local Government Area (LGA) populated based on state -->
+          <div class="mc-form-group">
+            <label for="reg-lga" class="mc-label">
+              <span>Local Government Area (LGA)</span>
+              <span class="mc-label__required">*</span>
+            </label>
+            <div class="mc-select-wrapper">
+              <select id="reg-lga" name="lga" class="mc-select" required>
+                <option value="">Select LGA...</option>
+              </select>
+              <svg class="icon mc-select-icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </div>
+          </div>
+        </div>
+
+        <div class="mc-grid-2">
+          <!-- School Type -->
+          <div class="mc-form-group">
+            <label for="reg-school-type" class="mc-label">
+              <span>School Type</span>
+              <span class="mc-label__required">*</span>
+            </label>
+            <div class="mc-select-wrapper">
+              <select id="reg-school-type" name="schoolType" class="mc-select" required>
+                <option value="Public">Public School</option>
+                <option value="Private">Private School</option>
+                <option value="Community">Community School</option>
+                <option value="Islamiyya">Islamiyya School</option>
+              </select>
+              <svg class="icon mc-select-icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </div>
+          </div>
+
+          <!-- Years Teaching Bands -->
+          <div class="mc-form-group">
+            <label for="reg-years-teaching" class="mc-label">
+              <span>Years Teaching</span>
+              <span class="mc-label__required">*</span>
+            </label>
+            <div class="mc-select-wrapper">
+              <select id="reg-years-teaching" name="yearsTeaching" class="mc-select" required>
+                <option value="0 to 2">0 to 2 years</option>
+                <option value="3 to 5" selected>3 to 5 years</option>
+                <option value="6 to 10">6 to 10 years</option>
+                <option value="11+">11+ years</option>
+              </select>
+              <svg class="icon mc-select-icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </div>
+          </div>
+        </div>
+      </fieldset>
+
+      <!-- SECTION 3: TEACHING DETAILS -->
+      <fieldset class="mc-form-fieldset">
+        <legend class="mc-fieldset-legend">Teaching Profile</legend>
+
+        <!-- Subjects Taught (Multi-select) -->
+        <div class="mc-form-group">
+          <label class="mc-label">
+            <span>Subjects You Teach</span>
+            <span class="mc-label__required">*</span>
+          </label>
+          <div class="mc-checkbox-grid">
+            {["Mathematics", "Basic Science", "English Language", "Hausa", "Social Studies", "Agricultural Science", "Chemistry", "Biology", "Physics"].map((sub) => (
+              <label class="mc-checkbox-pill">
+                <input type="checkbox" name="subjects" value={sub} checked={sub === "Mathematics" || sub === "Basic Science"} />
+                <span>{sub}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        <!-- Class Levels (Multi-select Primary 1 to SS 3) -->
+        <div class="mc-form-group">
+          <label class="mc-label">
+            <span>Class Levels You Teach</span>
+            <span class="mc-label__required">*</span>
+          </label>
+          <div class="mc-checkbox-grid">
+            {["Primary 1", "Primary 2", "Primary 3", "Primary 4", "Primary 5", "Primary 6", "JSS 1", "JSS 2", "JSS 3", "SS 1", "SS 2", "SS 3"].map((lvl) => (
+              <label class="mc-checkbox-pill">
+                <input type="checkbox" name="classLevels" value={lvl} checked={lvl.startsWith("JSS")} />
+                <span>{lvl}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        <!-- Languages Used in Class (Multi-select) -->
+        <div class="mc-form-group">
+          <label class="mc-label">
+            <span>Languages Used in Your Classroom</span>
+            <span class="mc-label__required">*</span>
+          </label>
+          <div class="mc-checkbox-grid">
+            {["Hausa", "English", "Fulfulde", "Kanuri", "Nupe", "Yoruba", "Others"].map((lang) => (
+              <label class="mc-checkbox-pill">
+                <input type="checkbox" name="languages" value={lang} checked={lang === "Hausa" || lang === "English"} />
+                <span>{lang}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+      </fieldset>
+
+      <!-- SECTION 4: PHONE ACCESS & SECURITY -->
+      <fieldset class="mc-form-fieldset">
+        <legend class="mc-fieldset-legend">Device Security (PRD Section 2.5)</legend>
+
+        <div class="mc-form-group">
+          <label class="mc-label">
+            <span>Phone Access</span>
+            <span class="mc-label__required">*</span>
+          </label>
+          <div class="mc-radio-group">
+            <label class="mc-radio-card">
+              <input type="radio" name="phoneOwnership" value="own" checked />
+              <div class="mc-radio-card__content">
+                <strong>My own phone</strong>
+                <span>Saved items stay stored on this phone between sessions.</span>
+              </div>
+            </label>
+            <label class="mc-radio-card">
+              <input type="radio" name="phoneOwnership" value="shared" />
+              <div class="mc-radio-card__content">
+                <strong>Shared phone</strong>
+                <span>Auto-signs out on idle; all saved items clear on sign-out for privacy.</span>
+              </div>
+            </label>
+          </div>
+        </div>
+      </fieldset>
+
+      <!-- SECTION 5: OPTIONAL TRCN VERIFICATION & CONTACT -->
+      <fieldset class="mc-form-fieldset">
+        <legend class="mc-fieldset-legend">Optional Verification &amp; Contact</legend>
+
+        <!-- Optional TRCN Registration Number (PRD Section 5.4) -->
+        <div class="mc-form-group">
+          <label for="reg-trcn" class="mc-label">
+            <span>TRCN Registration Number (Optional)</span>
+          </label>
+          <input 
+            type="text" 
+            id="reg-trcn" 
+            name="trcnNumber" 
+            class="mc-input" 
+            placeholder="e.g. TRCN/KAD/2019/012345"
+            aria-describedby="trcn-helper"
+            autocomplete="off"
+          />
+          <span id="trcn-helper" class="mc-helper-text">
+            If verified on the TRCN public register, adds a "TRCN registered" badge to your profile. Never enter an 11-digit NIN.
+          </span>
+        </div>
+
+        <!-- Optional Phone Number -->
+        <div class="mc-grid-2">
+          <div class="mc-form-group">
+            <label for="reg-phone" class="mc-label">
+              <span>Phone Number (Optional)</span>
+            </label>
+            <input 
+              type="tel" 
+              id="reg-phone" 
+              name="phoneNumber" 
+              class="mc-input" 
+              placeholder="0803..." 
+              autocomplete="tel"
+            />
+          </div>
+
+          <div class="mc-form-group" style="display: flex; align-items: flex-end; padding-bottom: 8px;">
+            <label style="display: flex; align-items: center; gap: var(--space-2); font-size: var(--fs-small); cursor: pointer;">
+              <input type="checkbox" name="mayContact" value="yes" style="accent-color: var(--brand-primary);" />
+              <span>You may contact me about Malamai Circle</span>
+            </label>
+          </div>
+        </div>
+      </fieldset>
+
+      <!-- SECTION 6: MANDATORY PRIVACY CONSENT -->
+      <div class="mc-form-group mc-consent-box">
+        <label style="display: flex; align-items: flex-start; gap: var(--space-3); font-size: var(--fs-small); cursor: pointer;">
+          <input type="checkbox" id="reg-consent" name="consentPrivacy" required checked style="margin-top: 4px; accent-color: var(--brand-primary); min-width: 18px; min-height: 18px;" />
+          <span>
+            I have read how Malamai Circle uses my information. I agree to join. I know this is teachers' advice, not official guidance.
+          </span>
+        </label>
+      </div>
+
+      <!-- Submit Button -->
+      <button type="submit" class="mc-btn mc-btn--primary" id="btn-submit-join" style="width: 100%; min-height: 48px; font-size: var(--fs-body); margin-top: var(--space-4);">
+        <span>Create account / Buɗe asusu</span>
+      </button>
+
+    </form>
+  </section>
+
+</BaseLayout>
+
+<!-- Embedded States & LGAs Data for client-side dropdown population -->
+<script type="application/json" id="nigeria-lgas-data" set:html={JSON.stringify(NIGERIA_STATES_AND_LGAS)}></script>
+
+<script>
+  import { createAccount, verifyTRCN } from "../lib/data.js";
+  import { initIdleWatcher } from "../lib/idleWatcher.js";
+
+  const form = document.getElementById('join-form') as HTMLFormElement | null;
+  const stateSelect = document.getElementById('reg-state') as HTMLSelectElement | null;
+  const lgaSelect = document.getElementById('reg-lga') as HTMLSelectElement | null;
+  const trcnInput = document.getElementById('reg-trcn') as HTMLInputElement | null;
+  const ninErrorBanner = document.getElementById('nin-error-banner');
+  const trcnTimeoutBanner = document.getElementById('trcn-timeout-banner');
+  const joinErrorAlert = document.getElementById('join-error-alert');
+  const joinErrorMessage = document.getElementById('join-error-message');
+  const submitBtn = document.getElementById('btn-submit-join') as HTMLButtonElement | null;
+
+  // 1. Dynamic LGA Population
+  let lgasMap: Record<string, string[]> = {};
+  try {
+    const rawData = document.getElementById('nigeria-lgas-data')?.textContent;
+    if (rawData) lgasMap = JSON.parse(rawData);
+  } catch {}
+
+  function populateLgas(selectedState: string) {
+    if (!lgaSelect) return;
+    const lgas = lgasMap[selectedState] || ["Central LGA", "North LGA", "South LGA"];
+    lgaSelect.innerHTML = '<option value="">Select LGA...</option>' + 
+      lgas.map(lga => `<option value="${lga}">${lga}</option>`).join('');
+    if (selectedState === "Kaduna") {
+      lgaSelect.value = "Zaria";
+    }
+  }
+
+  stateSelect?.addEventListener('change', () => {
+    if (stateSelect) populateLgas(stateSelect.value);
+  });
+
+  if (stateSelect && stateSelect.value) {
+    populateLgas(stateSelect.value);
+  }
+
+  // 2. Client-Side NIN Guard (PRD Rule F4-04)
+  function checkNIN(val: string): boolean {
+    const stripped = val.replace(/[\s\-\/\.]/g, "");
+    const isNIN = /^\d{11}$/.test(stripped);
+    if (ninErrorBanner) {
+      ninErrorBanner.style.display = isNIN ? 'flex' : 'none';
+    }
+    return isNIN;
+  }
+
+  trcnInput?.addEventListener('input', (e) => {
+    checkNIN((e.target as HTMLInputElement).value);
+  });
+
+  // 3. Form Submission Handling
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (joinErrorAlert) joinErrorAlert.style.display = 'none';
+    if (trcnTimeoutBanner) trcnTimeoutBanner.style.display = 'none';
+
+    const formData = new FormData(form);
+    const username = (formData.get('username') as string || '').trim();
+    const pin = (formData.get('pin') as string || '').trim();
+    const state = formData.get('state') as string;
+    const lga = formData.get('lga') as string;
+    const schoolType = formData.get('schoolType') as string;
+    const yearsTeaching = formData.get('yearsTeaching') as string;
+    const phoneOwnership = formData.get('phoneOwnership') as string;
+    const trcnNumber = (formData.get('trcnNumber') as string || '').trim();
+    const phoneNumber = (formData.get('phoneNumber') as string || '').trim();
+    const mayContact = formData.get('mayContact') === 'yes';
+    const consentPrivacy = formData.get('consentPrivacy') === 'on';
+
+    const subjects = formData.getAll('subjects') as string[];
+    const classLevels = formData.getAll('classLevels') as string[];
+    const languages = formData.getAll('languages') as string[];
+
+    // Validate NIN before anything else
+    if (trcnNumber && checkNIN(trcnNumber)) {
+      if (ninErrorBanner) ninErrorBanner.style.display = 'flex';
+      trcnInput?.focus();
+      return;
+    }
+
+    if (!consentPrivacy) {
+      if (joinErrorAlert && joinErrorMessage) {
+        joinErrorMessage.textContent = "You must agree to the privacy notice to create an account.";
+        joinErrorAlert.style.display = 'flex';
+      }
+      return;
+    }
+
+    if (subjects.length === 0 || classLevels.length === 0 || languages.length === 0) {
+      if (joinErrorAlert && joinErrorMessage) {
+        joinErrorMessage.textContent = "Please select at least one subject, class level, and language.";
+        joinErrorAlert.style.display = 'flex';
+      }
+      return;
+    }
+
+    try {
+      if (submitBtn) submitBtn.disabled = true;
+
+      // Optional TRCN Verification check (PRD Section 5.4)
+      let trcnVerified = false;
+      let trcnPending = false;
+
+      if (trcnNumber) {
+        try {
+          const check = await verifyTRCN(trcnNumber);
+          if (check.isNIN) {
+            if (ninErrorBanner) ninErrorBanner.style.display = 'flex';
+            if (submitBtn) submitBtn.disabled = false;
+            return;
+          }
+          if (check.found) {
+            trcnVerified = true;
+          }
+          if (check.isTimeout) {
+            trcnPending = true;
+            if (trcnTimeoutBanner) trcnTimeoutBanner.style.display = 'flex';
+          }
+        } catch {
+          trcnPending = true;
+        }
+      }
+
+      // Create account via data seam
+      await createAccount({
+        username,
+        pin,
+        state,
+        lga,
+        schoolType,
+        subjects,
+        classLevels,
+        languages,
+        phoneOwnership,
+        yearsTeaching,
+        trcnNumber: trcnNumber || null,
+        trcnVerified,
+        trcnPending,
+        phoneNumber: phoneNumber || null,
+        mayContact,
+        consentPrivacy
+      });
+
+      // Configure shared-phone idle watcher if applicable
+      const isShared = phoneOwnership === 'shared';
+      localStorage.setItem('mc_is_shared_phone', isShared ? 'true' : 'false');
+      if (isShared) {
+        initIdleWatcher({ isSharedPhone: true });
+      }
+
+      // Success redirect to Profile
+      window.location.href = '/profile?welcome=new_member';
+    } catch (err: any) {
+      if (submitBtn) submitBtn.disabled = false;
+      if (joinErrorAlert && joinErrorMessage) {
+        joinErrorMessage.textContent = err.message || "Failed to create account. Please check your entries.";
+        joinErrorAlert.style.display = 'flex';
+      }
+    }
+  });
+</script>
+
+<style>
+  .mc-join-container {
+    background: var(--surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: var(--space-6) var(--space-5);
+    max-width: 680px;
+    margin: 0 auto;
+    box-shadow: var(--shadow-card);
+  }
+
+  .mc-join-header {
+    margin-bottom: var(--space-4);
+  }
+
+  .mc-page-title {
+    font-size: var(--fs-h2);
+    line-height: var(--lh-h2);
+    margin: 0;
+    color: var(--brand-navy);
+  }
+
+  .mc-page-subtitle {
+    color: var(--text-secondary);
+    font-size: var(--fs-small);
+    margin: 4px 0 0 0;
+  }
+
+  .mc-existing-member-bar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    background: var(--surface-subtle);
+    border: 1px solid var(--border-subtle);
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-4);
+    font-size: var(--fs-small);
+    color: var(--text-secondary);
+  }
+
+  .mc-link-btn {
+    background: none;
+    border: none;
+    color: var(--brand-primary);
+    font-weight: var(--fw-semibold);
+    padding: 0;
+    font-size: inherit;
+    cursor: pointer;
+    text-decoration: underline;
+  }
+
+  .mc-link-btn:hover {
+    color: var(--brand-primary-hover);
+  }
+
+  .mc-form-fieldset {
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+    margin-bottom: var(--space-4);
+    background: var(--surface);
+  }
+
+  .mc-fieldset-legend {
+    font-weight: var(--fw-bold);
+    font-size: var(--fs-small);
+    color: var(--brand-primary);
+    padding: 0 var(--space-2);
+  }
+
+  .mc-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-3);
+  }
+
+  @media (min-width: 540px) {
+    .mc-grid-2 {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  .mc-checkbox-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-top: var(--space-1);
+  }
+
+  .mc-checkbox-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    background: var(--surface-subtle);
+    border: 1px solid var(--border-subtle);
+    padding: 4px 12px;
+    border-radius: var(--radius-sm);
+    font-size: var(--fs-small);
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.15s ease;
+  }
+
+  .mc-checkbox-pill:hover {
+    border-color: var(--border-strong);
+  }
+
+  .mc-checkbox-pill input {
+    accent-color: var(--brand-primary);
+  }
+
+  .mc-radio-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    margin-top: var(--space-1);
+  }
+
+  .mc-radio-card {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: var(--space-3);
+    cursor: pointer;
+    background: var(--surface);
+    transition: all 0.15s ease;
+  }
+
+  .mc-radio-card:hover {
+    border-color: var(--border-strong);
+  }
+
+  .mc-radio-card input {
+    margin-top: 3px;
+    accent-color: var(--brand-primary);
+  }
+
+  .mc-radio-card__content {
+    display: flex;
+    flex-direction: column;
+    font-size: var(--fs-small);
+  }
+
+  .mc-radio-card__content strong {
+    color: var(--brand-navy);
+  }
+
+  .mc-radio-card__content span {
+    color: var(--text-secondary);
+    font-size: var(--fs-micro);
+    margin-top: 2px;
+  }
+
+  .mc-consent-box {
+    background: var(--surface-subtle);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: var(--space-3);
+    margin-top: var(--space-3);
+  }
+</style>

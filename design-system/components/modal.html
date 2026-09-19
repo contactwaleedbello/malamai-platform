@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Malamai Circle - Modal Dialog Component</title>
+  <link rel="stylesheet" href="../tokens/theme.css">
+  <link rel="stylesheet" href="components.css">
+  <script src="../theme-helper.js"></script>
+</head>
+<body style="padding: var(--space-6); background: var(--surface-bg);">
+
+  <main style="max-width: var(--prose-max); margin: 0 auto; background: var(--surface); padding: var(--space-6); border-radius: var(--radius-lg); border: 1px solid var(--border-subtle);">
+    <h1 style="font-size: var(--fs-h2); line-height: var(--lh-h2); margin-top: 0; color: var(--text-primary);">Modal Dialog</h1>
+    <p style="color: var(--text-muted); font-size: var(--fs-body); margin-bottom: var(--space-6);">
+      Dialog with scrim using <code>--surface-overlay</code>, focus trapped inside the dialog while open, close button at least 48px by 48px, and focus returned to the trigger button when closed.
+    </p>
+
+    <!-- Trigger Button -->
+    <button type="button" class="mc-btn mc-btn--primary" id="open-modal-trigger" aria-haspopup="dialog">
+      <span>Open Peer Review Dialog</span>
+    </button>
+  </main>
+
+  <!-- Modal Dialog Backdrop (Scrim) -->
+  <div class="mc-modal-backdrop" id="review-modal-backdrop" hidden>
+    <div 
+      class="mc-modal" 
+      role="dialog" 
+      aria-modal="true" 
+      aria-labelledby="modal-title" 
+      aria-describedby="modal-desc"
+      tabindex="-1"
+      id="review-modal"
+    >
+      <!-- Modal Header -->
+      <div class="mc-modal__header">
+        <h2 class="mc-modal__title" id="modal-title">Review Lesson Plan Submission</h2>
+        <button 
+          type="button" 
+          class="mc-modal__close-btn" 
+          id="close-modal-btn" 
+          aria-label="Close review dialog"
+        >
+          <svg class="icon" viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="mc-modal__body" id="modal-desc">
+        <p style="margin-top: 0;">
+          You are reviewing the Term 2 Science Lesson Plan submitted by <strong>Ibrahim Aliyu</strong> (Kaduna North).
+        </p>
+        <p style="color: var(--text-muted); font-size: var(--fs-small);">
+          Your review will be marked as "This helped" if approved, or returned to "Still needs an answer" if revisions are necessary.
+        </p>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="mc-modal__footer">
+        <button type="button" class="mc-btn mc-btn--secondary" id="modal-cancel-btn">
+          <span>Cancel</span>
+        </button>
+        <button type="button" class="mc-btn mc-btn--primary" id="modal-confirm-btn">
+          <span>Approve Plan</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      const trigger = document.getElementById('open-modal-trigger');
+      const backdrop = document.getElementById('review-modal-backdrop');
+      const modal = document.getElementById('review-modal');
+      const closeBtn = document.getElementById('close-modal-btn');
+      const cancelBtn = document.getElementById('modal-cancel-btn');
+      const confirmBtn = document.getElementById('modal-confirm-btn');
+
+      let lastActiveElement = null;
+
+      function openModal() {
+        lastActiveElement = document.activeElement;
+        backdrop.removeAttribute('hidden');
+        document.body.style.overflow = 'hidden';
+        closeBtn.focus();
+      }
+
+      function closeModal() {
+        backdrop.setAttribute('hidden', '');
+        document.body.style.overflow = '';
+        if (lastActiveElement && typeof lastActiveElement.focus === 'function') {
+          lastActiveElement.focus();
+        }
+      }
+
+      trigger.addEventListener('click', openModal);
+      closeBtn.addEventListener('click', closeModal);
+      cancelBtn.addEventListener('click', closeModal);
+      confirmBtn.addEventListener('click', () => {
+        alert('Lesson plan approved!');
+        closeModal();
+      });
+
+      // Close on backdrop click
+      backdrop.addEventListener('click', (e) => {
+        if (e.target === backdrop) closeModal();
+      });
+
+      // Escape key and Focus Trap inside modal
+      document.addEventListener('keydown', (e) => {
+        if (backdrop.hasAttribute('hidden')) return;
+
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          closeModal();
+          return;
+        }
+
+        if (e.key === 'Tab') {
+          const focusableElements = modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+          const firstElement = focusableElements[0];
+          const lastElement = focusableElements[focusableElements.length - 1];
+
+          if (e.shiftKey) {
+            if (document.activeElement === firstElement) {
+              e.preventDefault();
+              lastElement.focus();
+            }
+          } else {
+            if (document.activeElement === lastElement) {
+              e.preventDefault();
+              firstElement.focus();
+            }
+          }
+        }
+      });
+    })();
+  </script>
+
+</body>
+</html>

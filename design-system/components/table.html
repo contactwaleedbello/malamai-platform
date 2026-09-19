@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Malamai Circle - Admin Data Table</title>
+  <link rel="stylesheet" href="../tokens/theme.css">
+  <link rel="stylesheet" href="components.css">
+  <script src="../theme-helper.js"></script>
+</head>
+<body style="padding: var(--space-6); background: var(--surface-bg);">
+
+  <main style="max-width: 1000px; margin: 0 auto; background: var(--surface); padding: var(--space-6); border-radius: var(--radius-lg); border: 1px solid var(--border-subtle);">
+    <h1 style="font-size: var(--fs-h2); line-height: var(--lh-h2); margin-top: 0; color: var(--text-primary);">School Administration Table</h1>
+    <p style="color: var(--text-muted); font-size: var(--fs-body); margin-bottom: var(--space-6);">
+      Sticky header, zebra rows alternating between <code>--surface</code> and <code>--surface-bg</code>, numeric columns right-aligned in monospace, and horizontal scroll isolation.
+    </p>
+
+    <!-- Horizontal scroll wrapper ensures page body never scrolls horizontally -->
+    <div class="mc-table-container" tabindex="0" role="region" aria-label="Educator Directory Table">
+      <table class="mc-table">
+        <thead>
+          <tr>
+            <th scope="col">Teacher ID</th>
+            <th scope="col">Full Name</th>
+            <th scope="col">LGA & School</th>
+            <th scope="col">Subject</th>
+            <th scope="col">Status</th>
+            <th scope="col" class="mc-table__numeric">Students</th>
+            <th scope="col" class="mc-table__numeric">Lesson Plans</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Row 1 -->
+          <tr>
+            <td style="font-family: var(--font-mono); font-size: var(--fs-small);">KN-0481</td>
+            <td style="font-weight: var(--fw-medium);">Fatima Bello</td>
+            <td>Kano Municipal (GSS Dala)</td>
+            <td>Mathematics</td>
+            <td>
+              <span class="mc-status-badge mc-status-badge--verified">
+                <svg class="icon" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                </svg>
+                <span>TRCN registered</span>
+              </span>
+            </td>
+            <td class="mc-table__numeric">142</td>
+            <td class="mc-table__numeric">18</td>
+          </tr>
+
+          <!-- Row 2 -->
+          <tr>
+            <td style="font-family: var(--font-mono); font-size: var(--fs-small);">KD-1092</td>
+            <td style="font-weight: var(--fw-medium);">Ibrahim Aliyu</td>
+            <td>Kaduna North (Rimi College)</td>
+            <td>English Language</td>
+            <td>
+              <span class="mc-status-badge mc-status-badge--active">
+                <svg class="icon" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+                <span>Waiting for review</span>
+              </span>
+            </td>
+            <td class="mc-table__numeric">98</td>
+            <td class="mc-table__numeric">12</td>
+          </tr>
+
+          <!-- Row 3 -->
+          <tr>
+            <td style="font-family: var(--font-mono); font-size: var(--fs-small);">SK-0329</td>
+            <td style="font-weight: var(--fw-medium);">Zainab Abubakar</td>
+            <td>Sokoto North (Nagarta College)</td>
+            <td>Basic Science</td>
+            <td>
+              <span class="mc-status-badge mc-status-badge--success">
+                <svg class="icon" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                <span>This helped</span>
+              </span>
+            </td>
+            <td class="mc-table__numeric">115</td>
+            <td class="mc-table__numeric">24</td>
+          </tr>
+
+          <!-- Row 4 -->
+          <tr>
+            <td style="font-family: var(--font-mono); font-size: var(--fs-small);">BO-0784</td>
+            <td style="font-weight: var(--fw-medium);">Usman Mustapha</td>
+            <td>Maiduguri (Yerwa Comprehensive)</td>
+            <td>Social Studies</td>
+            <td>
+              <span class="mc-status-badge mc-status-badge--pending">
+                <svg class="icon" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+                <span>Still needs an answer</span>
+              </span>
+            </td>
+            <td class="mc-table__numeric">86</td>
+            <td class="mc-table__numeric">9</td>
+          </tr>
+
+          <!-- Row 5 -->
+          <tr>
+            <td style="font-family: var(--font-mono); font-size: var(--fs-small);">KT-0215</td>
+            <td style="font-weight: var(--fw-medium);">Hauwa Lawal</td>
+            <td>Katsina (Dikko Memorial)</td>
+            <td>Agricultural Science</td>
+            <td>
+              <span class="mc-status-badge mc-status-badge--neutral">
+                <svg class="icon" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="12" cy="12" r="4" fill="currentColor"></circle>
+                </svg>
+                <span>Draft</span>
+              </span>
+            </td>
+            <td class="mc-table__numeric">64</td>
+            <td class="mc-table__numeric">5</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+</body>
+</html>

@@ -1,0 +1,40 @@
+{
+  "statusMap": {
+    "pending":  { "label": "Still needs an answer", "icon": "clock",  "border": "dashed",      "token": "status-pending" },
+    "success":  { "label": "This helped",           "icon": "check",  "border": "solid",       "token": "status-success" },
+    "active":   { "label": "Waiting for review",    "icon": "eye",    "border": "double",      "token": "status-active" },
+    "danger":   { "label": "Hidden or removed",     "icon": "slash",  "border": "thick-solid", "token": "status-danger" },
+    "neutral":  { "label": "Draft",                 "icon": "dot",    "border": "thin-solid",  "token": "status-neutral" },
+    "verified": { "label": "TRCN registered",       "icon": "shield", "border": "solid",       "token": "status-verified" }
+  },
+  "feedbackMap": {
+    "error":   { "label": "Error",       "icon": "alert-circle",   "token": "feedback-error" },
+    "warning": { "label": "Warning",     "icon": "alert-triangle", "token": "feedback-warning" },
+    "info":    { "label": "Information", "icon": "info-circle",    "token": "feedback-info" },
+    "success": { "label": "Success",     "icon": "check-circle",   "token": "feedback-success" }
+  },
+  "roles": {
+    "input-border":       "border-strong",
+    "input-border-error": "feedback-error",
+    "button-primary-bg":  "brand",
+    "button-primary-fg":  "on-brand",
+    "button-danger-bg":   "feedback-error",
+    "button-danger-fg":   "feedback-error-on",
+    "focus":              "focus-ring"
+  },
+  "button": {
+    "variants": ["primary", "secondary", "destructive", "disabled"],
+    "states": ["rest", "hover", "focus-visible", "disabled"],
+    "rules": ["min-height 48px on mobile", "visible focus ring", "disabled is not focusable", "text meets 4.5:1 on its background", "destructive uses button-danger-bg and button-danger-fg"]
+  },
+  "input": {
+    "types": ["text", "select", "textarea"],
+    "states": ["rest", "focus-visible", "error", "disabled"],
+    "rules": ["visible label element", "border uses input-border", "error uses input-border-error plus icon plus text", "helper line", "min-height 48px on mobile"]
+  },
+  "feedbackBanner": { "rules": ["one banner per error, warning, info, success", "message uses default text color on the tint background", "feedback color drives the icon and left border", "shows icon plus label plus text, never color alone"] },
+  "statusCard": { "rules": ["message uses default text color", "status shown by color plus label plus icon plus left-border shape from statusMap"] },
+  "table": { "rules": ["sticky header", "zebra rows using surface and surface-bg", "numeric columns right-aligned in mono", "horizontal scroll container so page body never scrolls sideways"] },
+  "modal": { "rules": ["scrim uses surface-overlay", "focus trapped inside", "labelled close button min 48px", "focus returns to trigger on close"] },
+  "themeToggle": { "options": ["light", "dark", "system"], "rules": ["writes choice to localStorage in try/catch", "reads on load", "sets data-theme on html", "falls back to system when storage empty or blocked", "visible focus ring"] }
+}

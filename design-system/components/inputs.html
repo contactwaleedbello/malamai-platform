@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Malamai Circle - Form Inputs Component</title>
+  <link rel="stylesheet" href="../tokens/theme.css">
+  <link rel="stylesheet" href="components.css">
+  <script src="../theme-helper.js"></script>
+</head>
+<body style="padding: var(--space-6); background: var(--surface-bg);">
+
+  <main style="max-width: var(--prose-max); margin: 0 auto; background: var(--surface); padding: var(--space-6); border-radius: var(--radius-lg); border: 1px solid var(--border-subtle);">
+    <h1 style="font-size: var(--fs-h2); line-height: var(--lh-h2); margin-top: 0; color: var(--text-primary);">Form Inputs</h1>
+    <p style="color: var(--text-muted); font-size: var(--fs-body); margin-bottom: var(--space-6);">
+      Every input has a visible label element, uses <code>--input-border</code>, min-height 48px on mobile, helper lines, and distinct error states with error icons and error text.
+    </p>
+
+    <form onsubmit="event.preventDefault();">
+
+      <!-- 1. Text Input (Standard Rest State) -->
+      <div class="mc-form-group">
+        <label for="teacher-name" class="mc-label">
+          <span>Teacher Full Name</span>
+          <span class="mc-label__required" aria-hidden="true">*</span>
+        </label>
+        <input 
+          type="text" 
+          id="teacher-name" 
+          name="teacher_name" 
+          class="mc-input" 
+          placeholder="e.g. Fatima Bello"
+          aria-describedby="teacher-name-helper"
+          required
+        >
+        <span id="teacher-name-helper" class="mc-helper-text">
+          Enter official name as recorded in your TRCN license.
+        </span>
+      </div>
+
+      <!-- 2. Dropdown / Select (Standard Rest State) -->
+      <div class="mc-form-group">
+        <label for="school-lga" class="mc-label">
+          <span>Local Government Area (LGA)</span>
+          <span class="mc-label__required" aria-hidden="true">*</span>
+        </label>
+        <div class="mc-select-wrapper">
+          <select id="school-lga" name="school_lga" class="mc-select" aria-describedby="school-lga-helper">
+            <option value="">Select LGA...</option>
+            <option value="kano-municipal">Kano Municipal</option>
+            <option value="kaduna-north">Kaduna North</option>
+            <option value="sokoto-north">Sokoto North</option>
+            <option value="maiduguri">Maiduguri</option>
+            <option value="katsina">Katsina</option>
+          </select>
+          <svg class="icon mc-select-icon" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </div>
+        <span id="school-lga-helper" class="mc-helper-text">
+          Select the LGA where your school is situated.
+        </span>
+      </div>
+
+      <!-- 3. Textarea (Standard Rest State) -->
+      <div class="mc-form-group">
+        <label for="lesson-objectives" class="mc-label">
+          <span>Lesson Objectives & Notes</span>
+        </label>
+        <textarea 
+          id="lesson-objectives" 
+          name="lesson_objectives" 
+          class="mc-textarea" 
+          placeholder="Briefly outline weekly goals..."
+          aria-describedby="lesson-objectives-helper"
+        ></textarea>
+        <span id="lesson-objectives-helper" class="mc-helper-text">
+          Maximum 500 characters. Keep it clear for peer review.
+        </span>
+      </div>
+
+      <hr style="border: 0; border-top: 1px solid var(--border-subtle); margin: var(--space-6) 0;">
+
+      <h2 style="font-size: var(--fs-title-sm); color: var(--text-primary); margin-bottom: var(--space-4);">Input Error State Demonstrations</h2>
+
+      <!-- 4. Text Input in Error State -->
+      <div class="mc-form-group mc-form-group--error">
+        <label for="trcn-number" class="mc-label">
+          <span>TRCN Registration Number</span>
+          <span class="mc-label__required" aria-hidden="true">*</span>
+        </label>
+        <input 
+          type="text" 
+          id="trcn-number" 
+          name="trcn_number" 
+          class="mc-input" 
+          value="KN-999-INVALID"
+          aria-invalid="true"
+          aria-describedby="trcn-error"
+        >
+        <span id="trcn-error" class="mc-error-text" role="alert">
+          <svg class="icon" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          <span>Invalid registration format. Expected e.g. TRCN/KN/P/12345.</span>
+        </span>
+      </div>
+
+    </form>
+  </main>
+
+</body>
+</html>

@@ -1,0 +1,801 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import EmptyState from "../components/EmptyState.astro";
+import { getCurrentUser } from "../lib/data.js";
+
+const user = await getCurrentUser();
+const isSharedPhoneInitial = user?.isSharedPhone ?? false;
+---
+
+<BaseLayout title="Saved to this phone" activeNav="saved">
+
+  <!-- Page Header -->
+  <div class="mc-saved-header">
+    <div>
+      <h1 class="mc-page-title">
+        Saved to this phone / An Ajiye
+      </h1>
+      <p class="mc-page-subtitle">
+        These questions and worksheets are saved on your phone and open even when your connection drops.
+      </p>
+    </div>
+
+    <div class="mc-saved-actions">
+      <button type="button" class="mc-btn mc-btn--secondary mc-btn--sm" id="clear-all-saved-btn">
+        <svg class="icon" viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="3 6 5 6 21 6"></polyline>
+          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+        </svg>
+        <span>Clear all saved</span>
+      </button>
+
+      <!-- Sign Out Simulation Button (PRD Section 2.5 & Rule F3-02) -->
+      <button type="button" class="mc-btn mc-btn--secondary mc-btn--sm" id="simulate-signout-btn" style="color: var(--danger);">
+        <svg class="icon" viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+          <polyline points="16 17 21 12 16 7"></polyline>
+          <line x1="21" y1="12" x2="9" y2="12"></line>
+        </svg>
+        <span>Sign Out</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Shared Phone Notice (PRD Section 2.5) -->
+  <aside class="mc-feedback mc-feedback--info" id="shared-phone-banner" style={isSharedPhoneInitial ? "margin-bottom: var(--space-4);" : "display: none; margin-bottom: var(--space-4);"}>
+    <svg class="icon mc-feedback__icon" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="10"></circle>
+      <line x1="12" y1="16" x2="12" y2="12"></line>
+      <line x1="12" y1="8" x2="12.01" y2="8"></line>
+    </svg>
+    <div class="mc-feedback__body">
+      <strong class="mc-feedback__title">Shared Phone Notice (Tsaron Waya):</strong>
+      <p class="mc-feedback__message">
+        You are using a shared phone. For your privacy and security, all saved items will automatically clear from this device when you sign out.
+      </p>
+    </div>
+  </aside>
+
+  <!-- Dev / Test Controls Bar -->
+  <div class="mc-phone-mode-bar">
+    <span style="font-size: var(--fs-small); font-weight: var(--fw-semibold); color: var(--brand-navy);">
+      Device Security Setting:
+    </span>
+    <div style="display: flex; gap: var(--space-2); align-items: center;">
+      <button type="button" class={`mc-btn mc-btn--secondary mc-btn--sm ${!isSharedPhoneInitial ? 'is-active-mode' : ''}`} id="btn-mode-own">
+        Own Phone
+      </button>
+      <button type="button" class={`mc-btn mc-btn--secondary mc-btn--sm ${isSharedPhoneInitial ? 'is-active-mode' : ''}`} id="btn-mode-shared">
+        Shared Phone
+      </button>
+    </div>
+  </div>
+
+  <!-- Sign Out Purged Banner -->
+  <div id="signout-purged-banner" class="mc-feedback mc-feedback--success" style="display: none; margin-bottom: var(--space-4);" role="status">
+    <svg class="icon mc-feedback__icon" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+    <div class="mc-feedback__body">
+      <strong class="mc-feedback__title">Signed out safely</strong>
+      <p class="mc-feedback__message" id="signout-purged-message">All saved items have been cleared from this phone.</p>
+    </div>
+  </div>
+
+  <!-- Dual-Tab Filter Pills (Questions vs Resources) -->
+  <div class="mc-saved-tabs" id="saved-tabs-bar" style="display: none;">
+    <button type="button" class="mc-tab-btn is-active" data-filter="all">All Saved (<span id="count-all">0</span>)</button>
+    <button type="button" class="mc-tab-btn" data-filter="question">Questions (<span id="count-q">0</span>)</button>
+    <button type="button" class="mc-tab-btn" data-filter="resource">Worksheets (<span id="count-r">0</span>)</button>
+  </div>
+
+  <!-- Saved Items Container -->
+  <section aria-label="Saved items list" id="saved-items-container">
+    <div class="mc-skeleton-stack" id="saved-loading">
+      <div class="mc-skeleton mc-skeleton--card" style="height: 90px; margin-bottom: var(--space-3); border-radius: var(--radius-md); background: var(--surface-subtle);"></div>
+      <div class="mc-skeleton mc-skeleton--card" style="height: 90px; border-radius: var(--radius-md); background: var(--surface-subtle);"></div>
+    </div>
+
+    <!-- Empty State (PRD Section 5.3: Exact Copy) -->
+    <div id="saved-empty-state" style="display: none;">
+      <div class="mc-empty-box">
+        <svg class="icon mc-empty-icon" viewBox="0 0 24 24" width="48" height="48" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+        </svg>
+        <h2 class="mc-empty-title">No saved items</h2>
+        <p class="mc-empty-subtitle">
+          You have not saved anything yet. Tap Save on a question or a resource.
+        </p>
+        <div style="display: flex; gap: var(--space-3); justify-content: center; flex-wrap: wrap;">
+          <a href="/boards" class="mc-btn mc-btn--primary">
+            Browse questions
+          </a>
+          <a href="/shelf" class="mc-btn mc-btn--secondary">
+            Browse shelf
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Saved Items Card Stack -->
+    <div class="mc-card-stack" id="saved-cards-list" style="display: none;">
+      <!-- Populated by JavaScript -->
+    </div>
+  </section>
+
+  <!-- OFFLINE FULL VIEW MODAL (PRD Section 5.3: Opens offline even in airplane mode) -->
+  <dialog id="offline-view-modal" class="mc-offline-modal" aria-labelledby="offline-modal-title">
+    <div class="mc-offline-modal__content">
+      <div class="mc-offline-modal__header">
+        <div class="mc-offline-badge">
+          <svg class="icon" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M1 1l22 22"></path><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"></path><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"></path><path d="M10.71 5.05A16 16 0 0 1 22.58 9"></path><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"></path><path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path><line x1="12" y1="20" x2="12.01" y2="20"></line></svg>
+          <span id="offline-modal-title">Offline Reading Mode • An ajiye a waya</span>
+        </div>
+        <button type="button" class="mc-btn mc-btn--secondary mc-btn--sm" id="btn-close-offline-modal" aria-label="Close offline reading view">
+          ✕ Close
+        </button>
+      </div>
+
+      <div class="mc-offline-modal__body" id="offline-modal-body">
+        <!-- Injected by client script -->
+      </div>
+    </div>
+  </dialog>
+
+</BaseLayout>
+
+<script>
+  import { 
+    getSavedItems, 
+    getSavedItemById, 
+    removeSavedItem, 
+    clearAllSavedItems, 
+    handleSignOut 
+  } from "../lib/offlineStore.js";
+  import { setUserPhoneOwnership, signOut } from "../lib/data.js";
+
+  let isSharedPhone = localStorage.getItem('mc_is_shared_phone') === 'true';
+
+  const loadingEl = document.getElementById('saved-loading');
+  const emptyStateEl = document.getElementById('saved-empty-state');
+  const cardsListEl = document.getElementById('saved-cards-list');
+  const tabsBar = document.getElementById('saved-tabs-bar');
+  const sharedBanner = document.getElementById('shared-phone-banner');
+  const signoutBanner = document.getElementById('signout-purged-banner');
+  const signoutMessage = document.getElementById('signout-purged-message');
+  const btnModeOwn = document.getElementById('btn-mode-own');
+  const btnModeShared = document.getElementById('btn-mode-shared');
+  const clearAllBtn = document.getElementById('clear-all-saved-btn');
+  const signoutBtn = document.getElementById('simulate-signout-btn');
+  const offlineModal = document.getElementById('offline-view-modal') as HTMLDialogElement | null;
+  const offlineModalBody = document.getElementById('offline-modal-body');
+  const btnCloseModal = document.getElementById('btn-close-offline-modal');
+
+  let currentTabFilter = 'all';
+
+  function updatePhoneModeUI() {
+    if (isSharedPhone) {
+      if (sharedBanner) sharedBanner.style.display = 'flex';
+      btnModeShared?.classList.add('is-active-mode');
+      btnModeOwn?.classList.remove('is-active-mode');
+    } else {
+      if (sharedBanner) sharedBanner.style.display = 'none';
+      btnModeOwn?.classList.add('is-active-mode');
+      btnModeShared?.classList.remove('is-active-mode');
+    }
+  }
+
+  btnModeOwn?.addEventListener('click', async () => {
+    isSharedPhone = false;
+    localStorage.setItem('mc_is_shared_phone', 'false');
+    await setUserPhoneOwnership('own');
+    updatePhoneModeUI();
+  });
+
+  btnModeShared?.addEventListener('click', async () => {
+    isSharedPhone = true;
+    localStorage.setItem('mc_is_shared_phone', 'true');
+    await setUserPhoneOwnership('shared');
+    updatePhoneModeUI();
+  });
+
+  updatePhoneModeUI();
+
+  // Tab switcher
+  document.querySelectorAll('.mc-tab-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      document.querySelectorAll('.mc-tab-btn').forEach(b => b.classList.remove('is-active'));
+      const target = e.currentTarget as HTMLElement;
+      target.classList.add('is-active');
+      currentTabFilter = target.getAttribute('data-filter') || 'all';
+      filterCards();
+    });
+  });
+
+  function filterCards() {
+    const cards = document.querySelectorAll<HTMLElement>('.mc-saved-item-card');
+    cards.forEach(card => {
+      const type = card.getAttribute('data-type');
+      if (currentTabFilter === 'all' || type === currentTabFilter) {
+        card.style.display = 'flex';
+      } else {
+        card.style.display = 'none';
+      }
+    });
+  }
+
+  // Render Saved Items
+  async function renderSavedItems() {
+    try {
+      const items = await getSavedItems();
+      if (loadingEl) loadingEl.style.display = 'none';
+
+      if (!items || items.length === 0) {
+        if (emptyStateEl) emptyStateEl.style.display = 'block';
+        if (cardsListEl) cardsListEl.style.display = 'none';
+        if (tabsBar) tabsBar.style.display = 'none';
+        return;
+      }
+
+      if (emptyStateEl) emptyStateEl.style.display = 'none';
+      if (tabsBar) tabsBar.style.display = 'flex';
+
+      const qCount = items.filter(i => i.type === 'question').length;
+      const rCount = items.filter(i => i.type === 'resource').length;
+      const countAll = document.getElementById('count-all');
+      const countQ = document.getElementById('count-q');
+      const countR = document.getElementById('count-r');
+      if (countAll) countAll.textContent = String(items.length);
+      if (countQ) countQ.textContent = String(qCount);
+      if (countR) countR.textContent = String(rCount);
+
+      if (cardsListEl) {
+        cardsListEl.style.display = 'flex';
+        cardsListEl.innerHTML = '';
+
+        items.forEach((item) => {
+          const card = document.createElement('article');
+          card.className = 'mc-saved-item-card';
+          card.id = `saved-item-${item.id}`;
+          card.setAttribute('data-type', item.type);
+
+          const isQuestion = item.type === 'question';
+          const typeLabel = isQuestion ? 'QUESTION THREAD' : 'RESOURCE WORKSHEET';
+          const onlineUrl = isQuestion ? `/questions/${item.id}` : `/shelf/${item.id}`;
+
+          card.innerHTML = `
+            <div class="mc-saved-item-main">
+              <div class="mc-saved-item-meta">
+                <span class="mc-type-badge mc-type-badge--${item.type}">${typeLabel}</span>
+                <span class="mc-dot">•</span>
+                <span>${escapeHtml(item.subject || '')}</span>
+                <span class="mc-dot">•</span>
+                <span>${escapeHtml(item.classLevel || '')}</span>
+              </div>
+              <h2 class="mc-saved-item-title">
+                <a href="${onlineUrl}" class="mc-online-link" data-id="${item.id}">${escapeHtml(item.title)}</a>
+              </h2>
+              <div class="mc-saved-item-footer">
+                <span class="mc-offline-ready-tag">
+                  ✓ Available offline
+                </span>
+                <span class="mc-dot">•</span>
+                <span class="mc-saved-time">Saved ${formatSavedDate(item.savedAt)}</span>
+              </div>
+            </div>
+
+            <div class="mc-saved-item-actions">
+              <button type="button" class="mc-btn mc-btn--primary mc-btn--sm btn-open-offline" data-id="${item.id}">
+                <svg class="icon" viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                  <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+                </svg>
+                <span>Open Offline</span>
+              </button>
+              <button type="button" class="mc-btn mc-btn--secondary mc-btn--sm btn-remove-saved" data-id="${item.id}" style="color: var(--danger);" aria-label="Remove ${escapeHtml(item.title)}">
+                Remove
+              </button>
+            </div>
+          `;
+
+          cardsListEl.appendChild(card);
+        });
+
+        attachItemEventListeners();
+        filterCards();
+      }
+    } catch (err) {
+      if (loadingEl) loadingEl.style.display = 'none';
+      if (emptyStateEl) emptyStateEl.style.display = 'block';
+    }
+  }
+
+  function attachItemEventListeners() {
+    document.querySelectorAll('.btn-open-offline').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        const id = (e.currentTarget as HTMLElement).getAttribute('data-id');
+        if (id) await openOfflineView(id);
+      });
+    });
+
+    document.querySelectorAll('.btn-remove-saved').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        const id = (e.currentTarget as HTMLElement).getAttribute('data-id');
+        if (!id) return;
+        await removeSavedItem(id);
+        const card = document.getElementById(`saved-item-${id}`);
+        card?.remove();
+        const remaining = await getSavedItems();
+        if (remaining.length === 0) {
+          renderSavedItems();
+        }
+      });
+    });
+  }
+
+  // Offline Full View Modal Renderer
+  async function openOfflineView(id: string) {
+    if (!offlineModal || !offlineModalBody) return;
+
+    offlineModalBody.innerHTML = '<div style="padding: 24px; text-align: center; color: var(--text-muted);">Loading offline copy...</div>';
+    offlineModal.showModal();
+
+    const item = await getSavedItemById(id);
+    if (!item) {
+      offlineModalBody.innerHTML = `
+        <div class="mc-feedback mc-feedback--warning">
+          <p>Could not load offline copy from phone storage.</p>
+        </div>
+      `;
+      return;
+    }
+
+    if (item.type === 'question' || item.id.startsWith('q_')) {
+      const repliesHtml = (item.replies || []).map((r: any) => `
+        <article class="mc-offline-reply-card">
+          <div class="mc-offline-reply-meta">
+            <strong>Malam ${escapeHtml(r.author_first_name || (r.author ? r.author.firstName : 'Teacher'))}</strong>
+            <span>(${escapeHtml(r.author_state || (r.author ? r.author.state : 'Kaduna'))} State)</span>
+            ${r.is_helped || (item.helped_reply_id && item.helped_reply_id === r.id) ? '<span class="mc-helped-badge">✓ This helped the teacher</span>' : ''}
+          </div>
+          <div class="mc-offline-reply-body">${escapeHtml(r.body)}</div>
+        </article>
+      `).join('');
+
+      offlineModalBody.innerHTML = `
+        <article class="mc-offline-article">
+          <div class="mc-offline-header-tags">
+            <span class="mc-tag mc-tag--subject">${escapeHtml(item.subject || '')}</span>
+            <span class="mc-tag mc-tag--class">${escapeHtml(item.class_level || item.classLevel || '')}</span>
+            <span class="mc-tag mc-tag--lang">${escapeHtml(item.language || 'English')}</span>
+          </div>
+
+          <h2 style="font-size: var(--fs-title-sm); color: var(--brand-navy); margin: var(--space-2) 0 var(--space-3) 0;">
+            ${escapeHtml(item.title)}
+          </h2>
+
+          <div class="mc-offline-question-body" style="font-size: var(--fs-body); line-height: var(--lh-body); margin-bottom: var(--space-4); white-space: pre-line;">
+            ${escapeHtml(item.body || '')}
+          </div>
+
+          <div style="font-size: var(--fs-small); color: var(--text-muted); margin-bottom: var(--space-4); border-bottom: 1px solid var(--border-subtle); padding-bottom: var(--space-3);">
+            Asked by Malam ${escapeHtml(item.author_first_name || (item.author ? item.author.firstName : 'Teacher'))} (${escapeHtml(item.author_state || (item.author ? item.author.state : 'Kaduna'))} State)
+          </div>
+
+          <h3 style="font-size: var(--fs-body-lg); color: var(--brand-navy); margin-bottom: var(--space-3);">
+            Replies (${(item.replies || []).length})
+          </h3>
+
+          <div class="mc-offline-replies-stack">
+            ${(item.replies || []).length === 0 ? '<p style="color: var(--text-muted); font-size: var(--fs-small);">No replies saved for this question yet.</p>' : repliesHtml}
+          </div>
+        </article>
+      `;
+    } else {
+      offlineModalBody.innerHTML = `
+        <article class="mc-offline-article">
+          <div class="mc-offline-header-tags">
+            <span class="mc-tag mc-tag--subject">${escapeHtml(item.subject || '')}</span>
+            <span class="mc-tag mc-tag--class">${escapeHtml(item.class_level || item.classLevel || '')}</span>
+            <span class="mc-tag mc-tag--lang">${escapeHtml(item.language || 'English')}</span>
+          </div>
+
+          <h2 style="font-size: var(--fs-title-sm); color: var(--brand-navy); margin: var(--space-2) 0 var(--space-3) 0;">
+            ${escapeHtml(item.title)}
+          </h2>
+
+          <div class="mc-feedback mc-feedback--info" style="margin-bottom: var(--space-3);">
+            <p><strong>License:</strong> ${escapeHtml(item.license || 'CC-BY-NC')}</p>
+            <p><strong>Source:</strong> ${item.source_choice === 'original' ? 'Teacher Made' : escapeHtml(item.source_choice || 'Open Resource')}</p>
+            <p><strong>File Size:</strong> ${escapeHtml(item.file_size || 'Unknown')}</p>
+          </div>
+
+          <p style="font-size: var(--fs-small); color: var(--text-muted);">
+            Shared by Malam ${escapeHtml(item.uploader_first_name || (item.author ? item.author.firstName : 'Teacher'))} (${escapeHtml(item.uploader_state || (item.author ? item.author.state : 'Kaduna'))} State)
+          </p>
+
+          <div style="margin-top: var(--space-4);">
+            <a href="${item.file_url || '#'}" download class="mc-btn mc-btn--primary">
+              <span>Download / Open File</span>
+            </a>
+          </div>
+        </article>
+      `;
+    }
+  }
+
+  btnCloseModal?.addEventListener('click', () => {
+    offlineModal?.close();
+  });
+
+  offlineModal?.addEventListener('click', (e) => {
+    if (e.target === offlineModal) offlineModal.close();
+  });
+
+  clearAllBtn?.addEventListener('click', async () => {
+    if (confirm('Are you sure you want to clear all saved items from this phone?')) {
+      await clearAllSavedItems();
+      renderSavedItems();
+    }
+  });
+
+  signoutBtn?.addEventListener('click', async () => {
+    const isShared = isSharedPhone;
+    const result = await handleSignOut(isShared);
+    await signOut();
+
+    if (signoutBanner && signoutMessage) {
+      if (result.purged) {
+        signoutMessage.textContent = `You were on a shared phone. ${result.count} saved item(s) have been permanently purged from this phone for your security.`;
+      } else {
+        signoutMessage.textContent = "Signed out. Since this is your own phone, your saved items remain available for your next session.";
+      }
+      signoutBanner.style.display = 'flex';
+    }
+
+    renderSavedItems();
+  });
+
+  function formatSavedDate(isoString: string) {
+    if (!isoString) return '';
+    try {
+      const d = new Date(isoString);
+      return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+    } catch {
+      return '';
+    }
+  }
+
+  function escapeHtml(str: string) {
+    if (!str) return '';
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  renderSavedItems();
+</script>
+
+<style>
+  .mc-saved-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+  }
+
+  .mc-page-title {
+    font-size: var(--fs-h2);
+    font-weight: var(--fw-bold);
+    color: var(--brand-navy);
+    margin: 0 0 var(--space-1) 0;
+  }
+
+  .mc-page-subtitle {
+    font-size: var(--fs-small);
+    color: var(--text-secondary);
+    margin: 0;
+  }
+
+  .mc-saved-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  /* Phone Mode Bar */
+  .mc-phone-mode-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    background: var(--surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: var(--space-2) var(--space-3);
+    margin-bottom: var(--space-4);
+    box-shadow: var(--shadow-subtle);
+  }
+
+  .is-active-mode {
+    background: var(--brand-primary) !important;
+    color: #fff !important;
+    border-color: var(--brand-primary) !important;
+    font-weight: var(--fw-bold);
+  }
+
+  /* Dual-Tab Filter */
+  .mc-saved-tabs {
+    display: flex;
+    gap: var(--space-2);
+    margin-bottom: var(--space-4);
+    border-bottom: 1px solid var(--border-subtle);
+    padding-bottom: var(--space-2);
+  }
+
+  .mc-tab-btn {
+    background: var(--surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 6px 14px;
+    font-size: var(--fs-small);
+    font-weight: var(--fw-medium);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .mc-tab-btn:hover {
+    border-color: var(--border-strong);
+    color: var(--text-primary);
+  }
+
+  .mc-tab-btn.is-active {
+    background: var(--brand-primary);
+    color: #fff;
+    border-color: var(--brand-primary);
+    font-weight: var(--fw-bold);
+  }
+
+  /* Saved Item Cards */
+  .mc-card-stack {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .mc-saved-item-card {
+    background: var(--surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: var(--space-4) var(--space-5);
+    box-shadow: var(--shadow-card);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    transition: border-color 0.15s ease;
+  }
+
+  .mc-saved-item-card:hover {
+    border-color: var(--border-strong);
+  }
+
+  .mc-saved-item-main {
+    flex: 1;
+    min-width: 260px;
+  }
+
+  .mc-saved-item-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: var(--fs-micro);
+    color: var(--text-muted);
+    margin-bottom: 4px;
+  }
+
+  .mc-type-badge {
+    font-weight: var(--fw-bold);
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: var(--radius-sm);
+    letter-spacing: 0.04em;
+  }
+
+  .mc-type-badge--question {
+    background: var(--brand-primary-tint);
+    color: var(--brand-primary);
+    border: 1px solid var(--border-subtle);
+  }
+
+  .mc-type-badge--resource {
+    background: var(--info-tint);
+    color: var(--info);
+    border: 1px solid var(--info-border);
+  }
+
+  .mc-dot {
+    color: var(--border-strong);
+  }
+
+  .mc-saved-item-title {
+    font-size: var(--fs-body-lg);
+    font-weight: var(--fw-bold);
+    margin: 0 0 6px 0;
+    line-height: var(--lh-body-lg);
+  }
+
+  .mc-online-link {
+    color: var(--brand-navy, var(--text-primary));
+    text-decoration: none;
+    transition: color 0.15s ease;
+  }
+
+  .mc-online-link:hover {
+    color: var(--brand-primary);
+  }
+
+  .mc-saved-item-footer {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: var(--fs-micro);
+    color: var(--text-muted);
+  }
+
+  .mc-offline-ready-tag {
+    color: var(--success);
+    font-weight: var(--fw-semibold);
+  }
+
+  .mc-saved-item-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  /* Empty Box */
+  .mc-empty-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: var(--space-8) var(--space-4);
+    background: var(--surface);
+    border: 1px dashed var(--border-strong);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-subtle);
+  }
+
+  .mc-empty-icon {
+    color: var(--text-muted);
+    margin-bottom: var(--space-3);
+  }
+
+  .mc-empty-title {
+    font-size: var(--fs-title-sm);
+    font-weight: var(--fw-bold);
+    color: var(--brand-navy);
+    margin: 0 0 var(--space-1) 0;
+  }
+
+  .mc-empty-subtitle {
+    font-size: var(--fs-small);
+    color: var(--text-secondary);
+    margin: 0 0 var(--space-4) 0;
+  }
+
+  /* Offline Modal */
+  .mc-offline-modal {
+    border: none;
+    border-radius: var(--radius-lg);
+    padding: 0;
+    max-width: 600px;
+    width: 94%;
+    box-shadow: var(--shadow-modal);
+    background: var(--surface);
+    color: var(--text-primary);
+  }
+
+  .mc-offline-modal::backdrop {
+    background: rgba(11, 25, 44, 0.75);
+    backdrop-filter: blur(4px);
+  }
+
+  .mc-offline-modal__content {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .mc-offline-modal__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-3) var(--space-4);
+    border-bottom: 1px solid var(--border-subtle);
+    background: var(--surface-subtle);
+  }
+
+  .mc-offline-badge {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: var(--fs-small);
+    font-weight: var(--fw-bold);
+    color: var(--brand-navy);
+  }
+
+  .mc-offline-modal__body {
+    padding: var(--space-5);
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+
+  .mc-offline-header-tags {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: var(--space-2);
+  }
+
+  .mc-tag {
+    font-size: var(--fs-micro);
+    font-weight: var(--fw-semibold);
+    padding: 2px 8px;
+    border-radius: var(--radius-full);
+  }
+
+  .mc-tag--subject {
+    background: var(--brand-primary-tint);
+    color: var(--brand-primary);
+    border: 1px solid var(--border-subtle);
+  }
+
+  .mc-tag--class {
+    background: var(--surface-subtle);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-subtle);
+  }
+
+  .mc-tag--lang {
+    background: var(--surface-subtle);
+    color: var(--text-muted);
+    border: 1px solid var(--border-subtle);
+  }
+
+  .mc-offline-reply-card {
+    background: var(--surface-subtle);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: var(--space-3);
+    margin-bottom: var(--space-3);
+  }
+
+  .mc-offline-reply-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: var(--fs-micro);
+    color: var(--text-muted);
+    margin-bottom: 4px;
+    flex-wrap: wrap;
+  }
+
+  .mc-helped-badge {
+    background: var(--success-tint);
+    color: var(--success);
+    font-weight: var(--fw-bold);
+    padding: 1px 6px;
+    border-radius: var(--radius-full);
+  }
+
+  .mc-offline-reply-body {
+    font-size: var(--fs-small);
+    line-height: var(--lh-small);
+    color: var(--text-primary);
+  }
+</style>

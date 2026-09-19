@@ -1,0 +1,432 @@
+/* ==========================================================================
+   Malamai Circle - Design System Master Theme (theme.css)
+   Canonical specification directly matching the Design System folder.
+   Two layers: Layer 1 (Primitives) -> Layer 2 (Semantic) -> Layer 2b (Aliases).
+   Native System Fonts Only (Zero external downloads, strictly under 150 KB payload).
+   ========================================================================== */
+
+/* LAYER 1: PRIMITIVES (Constant across themes) */
+:root {
+  --white: #FFFFFF;
+  
+  /* Zinc / Paper Palette Scale */
+  --zinc-50:  #FAFAFA;
+  --zinc-100: #F4F4F5;
+  --zinc-200: #E4E4E7;
+  --zinc-300: #D4D4D8;
+  --zinc-400: #A1A1AA;
+  --zinc-500: #71717A;
+  --zinc-600: #52525B;
+  --zinc-700: #3F3F46;
+  --zinc-800: #27272A;
+  --zinc-900: #18181B;
+
+  /* Red (Feedback Error / Danger) */
+  --red-100: #FEE2E2;
+  --red-400: #F87171;
+  --red-700: #B91C1C;
+  --red-950: #450A0A;
+
+  /* Amber (Feedback Warning / Still Needs an Answer) */
+  --amber-100: #FEF3C7;
+  --amber-300: #FCD34D;
+  --amber-700: #B45309;
+  --amber-950: #422006;
+
+  /* Blue (Feedback Info / Active / Focus) */
+  --blue-100: #DBEAFE;
+  --blue-400: #60A5FA;
+  --blue-700: #1D4ED8;
+  --blue-950: #172554;
+
+  /* Green (Feedback Success / This Helped) */
+  --green-100: #DCFCE7;
+  --green-400: #4ADE80;
+  --green-700: #15803D;
+  --green-950: #052E16;
+
+  /* Teal (Brand Primary - Northern Nigerian Educators Hub) */
+  --teal-300: #5EEAD4;
+  --teal-400: #2DD4BF;
+  --teal-700: #0F766E;
+  --teal-800: #115E59;
+
+  /* Violet (Accent Verified / TRCN Registered) */
+  --violet-100: #EDE9FE;
+  --violet-400: #A78BFA;
+  --violet-700: #6D28D9;
+  --violet-950: #2E1065;
+
+  /* Typography Stacks (Native system fonts only - 0 bytes downloaded) */
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, "Roboto Mono", Menlo, Consolas, monospace;
+
+  /* Typography Scale (Exact specifications from design-system/tokens/typography.json) */
+  --fs-micro: 0.75rem;    /* 12px */
+  --lh-micro: 1.4;
+  --fs-small: 0.875rem;   /* 14px */
+  --lh-small: 1.45;
+  --fs-body: 1rem;        /* 16px */
+  --lh-body: 1.6;
+  --fs-body-lg: 1.125rem; /* 18px */
+  --lh-body-lg: 1.6;
+  --fs-title-sm: 1.25rem; /* 20px */
+  --lh-title-sm: 1.4;
+  --fs-h3: 1.5rem;        /* 24px */
+  --lh-h3: 1.35;
+  --fs-h2: 1.875rem;      /* 30px */
+  --lh-h2: 1.3;
+  --fs-h1: 2.25rem;       /* 36px */
+  --lh-h1: 1.2;
+
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+
+  /* Spacing Scale (Exact 4px rhythm from design-system/tokens/spacing.json) */
+  --space-0: 0;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* Geometry & Radius (Exact specs from design-system/tokens/spacing.json) */
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+
+  /* Viewport & Touch Constraints */
+  --touch-min: 48px;
+  --target-gap-min: 8px;
+  --prose-max: 70ch;
+  --bp-tablet: 640px;
+  --bp-desktop: 1024px;
+
+  /* Ambient Depth & Shadows (Subtle, tactile, non-sterile) */
+  --shadow-subtle: 0 1px 2px rgba(24, 24, 27, 0.04);
+  --shadow-card: 0 1px 3px rgba(24, 24, 27, 0.06), 0 1px 2px rgba(24, 24, 27, 0.03);
+  --shadow-elevated: 0 4px 12px -2px rgba(24, 24, 27, 0.08), 0 2px 4px -1px rgba(24, 24, 27, 0.04);
+  --shadow-modal: 0 16px 36px -4px rgba(24, 24, 27, 0.20), 0 6px 12px -2px rgba(24, 24, 27, 0.08);
+}
+
+/* LAYER 2: SEMANTIC TOKENS (Light Defaults: Warm Paper Canvas, Deep Contrast Text) */
+:root {
+  --surface-bg: #F8FAFC;                     /* Warm comfortable paper neutral */
+  --surface: var(--white);                   /* Pristine card surface */
+  --surface-elevated: var(--white);
+  --surface-subtle: #F1F5F9;                 /* Soft contrast tint */
+  --surface-overlay: rgba(15, 23, 42, 0.65); /* Scrim overlay */
+
+  --text-primary: #0F172A;                   /* Deep slate / ink for high editorial contrast */
+  --text-muted: #475569;                     /* Readable secondary metadata */
+  --text-disabled: #94A3B8;
+  --text-inverted: var(--white);
+
+  --border-strong: #475569;                  /* High definition border */
+  --border-subtle: #E2E8F0;                  /* Crisp 1px border */
+  --focus-ring: var(--blue-700);
+
+  --brand: var(--teal-700);                  /* #0F766E */
+  --brand-hover: var(--teal-800);            /* #115E59 */
+  --on-brand: var(--white);
+
+  --feedback-error: var(--red-700);
+  --feedback-error-on: var(--white);
+  --feedback-error-tint: var(--red-100);
+
+  --feedback-warning: var(--amber-700);
+  --feedback-warning-on: var(--white);
+  --feedback-warning-tint: var(--amber-100);
+
+  --feedback-info: var(--blue-700);
+  --feedback-info-on: var(--white);
+  --feedback-info-tint: var(--blue-100);
+
+  --feedback-success: var(--green-700);
+  --feedback-success-on: var(--white);
+  --feedback-success-tint: var(--green-100);
+
+  --accent-verified: var(--violet-700);
+  --accent-verified-on: var(--white);
+  --accent-verified-tint: var(--violet-100);
+
+  --accent-neutral: var(--zinc-600);
+  --accent-neutral-on: var(--white);
+  --accent-neutral-tint: var(--zinc-100);
+}
+
+/* LAYER 2b: ALIASES & ROLES (Exact definitions from design-system/tokens/theme.css) */
+:root {
+  --status-danger: var(--feedback-error);
+  --on-danger: var(--feedback-error-on);
+  --tint-danger: var(--feedback-error-tint);
+
+  --status-pending: var(--feedback-warning);
+  --on-pending: var(--feedback-warning-on);
+  --tint-pending: var(--feedback-warning-tint);
+
+  --status-active: var(--feedback-info);
+  --on-active: var(--feedback-info-on);
+  --tint-active: var(--feedback-info-tint);
+
+  --status-success: var(--feedback-success);
+  --on-success: var(--feedback-success-on);
+  --tint-success: var(--feedback-success-tint);
+
+  --status-verified: var(--accent-verified);
+  --on-verified: var(--accent-verified-on);
+  --tint-verified: var(--accent-verified-tint);
+
+  --status-neutral: var(--accent-neutral);
+  --on-neutral: var(--accent-neutral-on);
+  --tint-neutral: var(--accent-neutral-tint);
+
+  /* Component Roles */
+  --input-border: var(--border-strong);
+  --input-border-error: var(--feedback-error);
+  --button-primary-bg: var(--brand);
+  --button-primary-fg: var(--on-brand);
+  --button-danger-bg: var(--feedback-error);
+  --button-danger-fg: var(--feedback-error-on);
+
+  /* Compatibility Bridges */
+  --border: var(--border-subtle);
+  --brand-primary: var(--brand);
+  --brand-primary-hover: var(--brand-hover);
+  --on-brand-primary: var(--on-brand);
+  --brand-tint: rgba(15, 118, 110, 0.08);
+  --brand-primary-tint: rgba(15, 118, 110, 0.08);
+  --brand-navy: var(--text-primary);
+  --brand-navy-tint: var(--surface-subtle);
+  --navy-950: var(--text-primary);
+  --navy-400: var(--border-strong);
+  --danger: var(--feedback-error);
+  --on-danger: var(--feedback-error-on);
+  --danger-tint: var(--feedback-error-tint);
+  --danger-border: var(--feedback-error);
+  --warning: var(--feedback-warning);
+  --on-warning: var(--feedback-warning-on);
+  --warning-tint: var(--feedback-warning-tint);
+  --warning-border: var(--feedback-warning);
+  --info: var(--feedback-info);
+  --on-info: var(--feedback-info-on);
+  --info-tint: var(--feedback-info-tint);
+  --info-border: var(--feedback-info);
+  --success: var(--feedback-success);
+  --on-success: var(--feedback-success-on);
+  --success-tint: var(--feedback-success-tint);
+  --success-border: var(--feedback-success);
+  
+  --shadow-sm: var(--shadow-subtle);
+  --shadow-md: var(--shadow-card);
+  --shadow-lg: var(--shadow-elevated);
+
+  /* Extended Compatibility Bridges (ad-hoc tokens used across page components) */
+  --color-white: var(--white);
+  --text-secondary: var(--text-muted);
+  --text-subtle: var(--text-disabled);
+  --border-focus: var(--focus-ring);
+  --border-hover: var(--border-strong);
+  --accent-teal: var(--brand);
+  --accent-subtle: var(--brand-tint);
+  --brand-primary-subtle: var(--brand-tint);
+  --fs-title-lg: var(--fs-h3);
+  --lh-tight: 1.3;
+  --lh-snug: 1.4;
+
+  /* Feedback Text/Subtle Aliases (used in admin & form pages) */
+  --success-subtle: var(--feedback-success-tint);
+  --success-text: var(--feedback-success);
+  --danger-subtle: var(--feedback-error-tint);
+  --danger-text: var(--feedback-error);
+  --warning-subtle: var(--feedback-warning-tint);
+  --warning-text: var(--feedback-warning);
+  --info-subtle: var(--feedback-info-tint);
+  --info-text: var(--feedback-info);
+}
+
+/* DARK THEME (Repoints semantic layer only) */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --surface-bg: #0B1320;
+    --surface: #131E2E;
+    --surface-elevated: #1A283C;
+    --surface-subtle: #192538;
+    --surface-overlay: rgba(0, 0, 0, 0.75);
+
+    --text-primary: #F8FAFC;
+    --text-muted: #94A3B8;
+    --text-disabled: #64748B;
+    --text-inverted: #0F172A;
+
+    --border-strong: #475569;
+    --border-subtle: #24354D;
+    --focus-ring: var(--blue-400);
+
+    --brand: var(--teal-400);
+    --brand-hover: var(--teal-300);
+    --on-brand: #0F172A;
+
+    --feedback-error: var(--red-400);
+    --feedback-error-on: #0F172A;
+    --feedback-error-tint: var(--red-950);
+
+    --feedback-warning: var(--amber-300);
+    --feedback-warning-on: #0F172A;
+    --feedback-warning-tint: var(--amber-950);
+
+    --feedback-info: var(--blue-400);
+    --feedback-info-on: #0F172A;
+    --feedback-info-tint: var(--blue-950);
+
+    --feedback-success: var(--green-400);
+    --feedback-success-on: #0F172A;
+    --feedback-success-tint: var(--green-950);
+
+    --accent-verified: var(--violet-400);
+    --accent-verified-on: #0F172A;
+    --accent-verified-tint: var(--violet-950);
+
+    --accent-neutral: var(--zinc-400);
+    --accent-neutral-on: #0F172A;
+    --accent-neutral-tint: var(--zinc-800);
+  }
+}
+
+:root[data-theme="dark"] {
+  --surface-bg: #0B1320;
+  --surface: #131E2E;
+  --surface-elevated: #1A283C;
+  --surface-subtle: #192538;
+  --surface-overlay: rgba(0, 0, 0, 0.75);
+
+  --text-primary: #F8FAFC;
+  --text-muted: #94A3B8;
+  --text-disabled: #64748B;
+  --text-inverted: #0F172A;
+
+  --border-strong: #475569;
+  --border-subtle: #24354D;
+  --focus-ring: var(--blue-400);
+
+  --brand: var(--teal-400);
+  --brand-hover: var(--teal-300);
+  --on-brand: #0F172A;
+
+  --feedback-error: var(--red-400);
+  --feedback-error-on: #0F172A;
+  --feedback-error-tint: var(--red-950);
+
+  --feedback-warning: var(--amber-300);
+  --feedback-warning-on: #0F172A;
+  --feedback-warning-tint: var(--amber-950);
+
+  --feedback-info: var(--blue-400);
+  --feedback-info-on: #0F172A;
+  --feedback-info-tint: var(--blue-950);
+
+  --feedback-success: var(--green-400);
+  --feedback-success-on: #0F172A;
+  --feedback-success-tint: var(--green-950);
+
+  --accent-verified: var(--violet-400);
+  --accent-verified-on: #0F172A;
+  --accent-verified-tint: var(--violet-950);
+
+  --accent-neutral: var(--zinc-400);
+  --accent-neutral-on: #0F172A;
+  --accent-neutral-tint: var(--zinc-800);
+}
+
+:root[data-theme="light"] {
+  --surface-bg: #F8FAFC;
+  --surface: var(--white);
+  --surface-elevated: var(--white);
+  --surface-subtle: #F1F5F9;
+  --surface-overlay: rgba(15, 23, 42, 0.65);
+
+  --text-primary: #0F172A;
+  --text-muted: #475569;
+  --text-disabled: #94A3B8;
+  --text-inverted: var(--white);
+
+  --border-strong: #475569;
+  --border-subtle: #E2E8F0;
+  --focus-ring: var(--blue-700);
+
+  --brand: var(--teal-700);
+  --brand-hover: var(--teal-800);
+  --on-brand: var(--white);
+
+  --feedback-error: var(--red-700);
+  --feedback-error-on: var(--white);
+  --feedback-error-tint: var(--red-100);
+
+  --feedback-warning: var(--amber-700);
+  --feedback-warning-on: var(--white);
+  --feedback-warning-tint: var(--amber-100);
+
+  --feedback-info: var(--blue-700);
+  --feedback-info-on: var(--white);
+  --feedback-info-tint: var(--blue-100);
+
+  --feedback-success: var(--green-700);
+  --feedback-success-on: var(--white);
+  --feedback-success-tint: var(--green-100);
+
+  --accent-verified: var(--violet-700);
+  --accent-verified-on: var(--white);
+  --accent-verified-tint: var(--violet-100);
+
+  --accent-neutral: var(--zinc-600);
+  --accent-neutral-on: var(--white);
+  --accent-neutral-tint: var(--zinc-100);
+}
+
+/* Base Global Resets */
+html {
+  font-size: 100%;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: var(--surface-bg);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+}
+
+p, li {
+  max-width: var(--prose-max);
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

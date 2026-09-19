@@ -1,0 +1,321 @@
+---
+// Admin Screen 4: Proof Numbers & Bandwidth Gauge (PRD Section 7.4 & 14)
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import AdminNav from "../../components/AdminNav.astro";
+import ErrorNotice from "../../components/ErrorNotice.astro";
+import { getCurrentUser, getAdminNumbers } from "../../lib/data.js";
+
+const user = await getCurrentUser();
+const isStaff = user && (user.role === "Admin" || user.role === "Moderator");
+
+let metrics = null;
+let fetchError = null;
+
+if (isStaff) {
+  try {
+    metrics = await getAdminNumbers();
+  } catch (err) {
+    fetchError = err.message || "Failed to load proof numbers.";
+  }
+}
+---
+
+<BaseLayout title="Proof Numbers & Egress - Admin">
+  {isStaff ? (
+    <div class="mc-admin-layout">
+      <AdminNav activeTab="numbers" viewerRole={user.role} />
+
+      <header class="mc-page-header">
+        <div class="mc-page-header__content">
+          <h1 class="mc-page-title">Proof Numbers &amp; Bandwidth (Section 7.4)</h1>
+          <p class="mc-page-desc">
+            Direct operational health metrics computed exclusively from the platform's local data layer. Strictly no third-party analytics trackers (Rule ADM-07).
+          </p>
+        </div>
+      </header>
+
+      {fetchError && (
+        <ErrorNotice message={fetchError} retryAction={true} />
+      )}
+
+      {metrics && (
+        <div class="mc-numbers-grid">
+          
+          <!-- Key Metric Cards -->
+          <div class="mc-stat-card">
+            <span class="mc-stat-label">Active Educators</span>
+            <strong class="mc-stat-value">{metrics.activeMembers}</strong>
+            <small class="mc-stat-subtext">of {metrics.totalSignups} total registered accounts</small>
+          </div>
+
+          <div class="mc-stat-card mc-stat-card--highlight">
+            <span class="mc-stat-label">72-Hour Reply Rate</span>
+            <strong class="mc-stat-value">{metrics.replyRate72h}%</strong>
+            <small class="mc-stat-subtext">Questions receiving a classroom answer within 72h</small>
+          </div>
+
+          <!-- Monthly Egress Usage Gauge (PRD Section 14) -->
+          <div class="mc-stat-card mc-stat-card--gauge">
+            <div class="mc-gauge-header">
+              <span class="mc-stat-label">Monthly Egress Usage (Section 14)</span>
+              <span class="mc-gauge-cost">Free Tier ($0.00)</span>
+            </div>
+            
+            <div class="mc-gauge-numbers">
+              <strong>{metrics.egressUsage.usedGb} GB</strong>
+              <span>of {metrics.egressUsage.capGb} GB cap</span>
+            </div>
+
+            <div class="mc-progress-bar-track" role="progressbar" aria-valuenow={metrics.egressUsage.percentage} aria-valuemin="0" aria-valuemax="100">
+              <div class="mc-progress-bar-fill" style={`width: ${metrics.egressUsage.percentage}%;`}></div>
+            </div>
+            
+            <small class="mc-stat-subtext">
+              {metrics.egressUsage.percentage}% consumed this calendar month. No video policy keeps bandwidth safe.
+            </small>
+          </div>
+
+          <!-- State Distribution Table -->
+          <div class="mc-stat-panel" style="grid-column: 1 / -1;">
+            <h2 class="mc-panel-title">Resource Downloads &amp; Usage by State</h2>
+            <div class="mc-bar-chart">
+              {Object.entries(metrics.downloadsByState).map(([state, count]) => {
+                const max = Math.max(...Object.values(metrics.downloadsByState));
+                const pct = Math.round((count / max) * 100);
+                return (
+                  <div class="mc-bar-row">
+                    <span class="mc-bar-label">{state}</span>
+                    <div class="mc-bar-track">
+                      <div class="mc-bar-fill" style={`width: ${pct}%;`}></div>
+                    </div>
+                    <span class="mc-bar-count">{count}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <!-- Subject Distribution Table -->
+          <div class="mc-stat-panel">
+            <h2 class="mc-panel-title">Classroom Utility by Subject</h2>
+            <ul class="mc-metric-list">
+              {Object.entries(metrics.downloadsBySubject).map(([subj, count]) => (
+                <li class="mc-metric-item">
+                  <span>{subj}</span>
+                  <strong>{count} uses</strong>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <!-- Class Level Distribution Table -->
+          <div class="mc-stat-panel">
+            <h2 class="mc-panel-title">Distribution by Class Band</h2>
+            <ul class="mc-metric-list">
+              {Object.entries(metrics.downloadsByClass).map(([band, count]) => (
+                <li class="mc-metric-item">
+                  <span>{band}</span>
+                  <strong>{count} files</strong>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+        </div>
+      )}
+    </div>
+  ) : (
+    <div class="mc-access-refused">
+      <div class="mc-feedback mc-feedback--error" role="alert">
+        <h2 class="mc-feedback__title">Access Refused (Staff Only)</h2>
+        <p class="mc-feedback__message">
+          You do not have permission to view Proof Numbers. Only Administrators and Moderators may access platform metrics.
+        </p>
+        <a href="/home" class="mc-btn mc-btn--primary" style="margin-top: var(--space-4);">Return to Home</a>
+      </div>
+    </div>
+  )}
+</BaseLayout>
+
+<style>
+  .mc-numbers-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--space-4);
+  }
+
+  .mc-stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    padding: var(--space-5);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .mc-stat-card:hover {
+    box-shadow: var(--shadow-md);
+  }
+
+  .mc-stat-card--highlight {
+    border-left: 6px solid var(--brand-primary);
+  }
+
+  .mc-stat-card--gauge {
+    border-left: 6px solid var(--accent-teal);
+  }
+
+  .mc-stat-label {
+    font-size: var(--fs-small);
+    color: var(--text-muted);
+    font-weight: var(--fw-semibold);
+  }
+
+  .mc-stat-value {
+    font-size: 2.5rem;
+    font-weight: var(--fw-bold);
+    color: var(--text-primary);
+    line-height: 1.1;
+  }
+
+  .mc-stat-subtext {
+    font-size: var(--fs-micro);
+    color: var(--text-muted);
+    margin-top: var(--space-1);
+  }
+
+  .mc-gauge-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .mc-gauge-cost {
+    font-size: var(--fs-micro);
+    font-weight: var(--fw-bold);
+    background: var(--success-subtle);
+    color: var(--success-text);
+    border: 1px solid var(--success-border);
+    padding: 2px 8px;
+    border-radius: var(--radius-sm);
+  }
+
+  .mc-gauge-numbers {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-2);
+    margin: var(--space-2) 0 var(--space-1);
+  }
+
+  .mc-gauge-numbers strong {
+    font-size: 2rem;
+    font-weight: var(--fw-bold);
+    color: var(--text-primary);
+  }
+
+  .mc-gauge-numbers span {
+    font-size: var(--fs-small);
+    color: var(--text-muted);
+  }
+
+  .mc-progress-bar-track {
+    background: var(--surface-bg);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-full);
+    height: 12px;
+    overflow: hidden;
+    margin: var(--space-2) 0;
+  }
+
+  .mc-progress-bar-fill {
+    background: var(--accent-teal);
+    height: 100%;
+    border-radius: var(--radius-full);
+    transition: width 0.3s ease;
+  }
+
+  .mc-stat-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    padding: var(--space-5);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .mc-panel-title {
+    font-size: var(--fs-title-sm);
+    font-weight: var(--fw-bold);
+    color: var(--text-primary);
+    margin: 0 0 var(--space-4) 0;
+  }
+
+  .mc-bar-chart {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .mc-bar-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    font-size: var(--fs-small);
+  }
+
+  .mc-bar-label {
+    min-width: 100px;
+    font-weight: var(--fw-medium);
+    color: var(--text-primary);
+  }
+
+  .mc-bar-track {
+    flex: 1;
+    background: var(--surface-bg);
+    border-radius: var(--radius-sm);
+    height: 18px;
+    overflow: hidden;
+  }
+
+  .mc-bar-fill {
+    background: var(--brand-primary);
+    height: 100%;
+    border-radius: var(--radius-sm);
+  }
+
+  .mc-bar-count {
+    min-width: 40px;
+    text-align: right;
+    font-weight: var(--fw-bold);
+    color: var(--text-primary);
+  }
+
+  .mc-metric-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+
+  .mc-metric-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-3) 0;
+    border-bottom: 1px solid var(--border-subtle);
+    font-size: var(--fs-small);
+  }
+
+  .mc-metric-item:last-child {
+    border-bottom: none;
+  }
+
+  .mc-access-refused {
+    max-width: 600px;
+    margin: var(--space-8) auto;
+  }
+</style>

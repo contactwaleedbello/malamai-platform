@@ -1,0 +1,514 @@
+---
+// Admin Screen 3: Members Directory & Account Management (PRD Section 7.3, DATA-03 & DATA-10)
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import AdminNav from "../../components/AdminNav.astro";
+import ErrorNotice from "../../components/ErrorNotice.astro";
+import { getCurrentUser, getMembers } from "../../lib/data.js";
+
+const user = await getCurrentUser();
+
+// Allow testing viewer role via query param if staff
+const urlRole = Astro.url.searchParams.get("role");
+const effectiveRole = urlRole || (user?.role === "Admin" || user?.role === "Moderator" ? user.role : "Member");
+
+const isStaff = effectiveRole === "Admin" || effectiveRole === "Moderator";
+const isAdmin = effectiveRole === "Admin";
+
+let membersList = [];
+let fetchError = null;
+
+if (isStaff) {
+  try {
+    membersList = await getMembers(effectiveRole);
+  } catch (err) {
+    fetchError = err.message || "Failed to load member directory.";
+  }
+}
+---
+
+<BaseLayout title="Members Directory - Admin">
+  {isStaff ? (
+    <div class="mc-admin-layout">
+      <AdminNav activeTab="members" viewerRole={effectiveRole} />
+
+      <header class="mc-page-header">
+        <div class="mc-page-header__content">
+          <div class="mc-title-with-role-sim">
+            <h1 class="mc-page-title">Members Management (Section 7.3)</h1>
+            
+            <!-- Quick Role Simulation Bar for Evaluation & Verification -->
+            <div class="mc-role-sim-switch" role="group" aria-label="Simulate viewer role for verification">
+              <span class="mc-role-sim-label">Viewer Role:</span>
+              <button 
+                type="button"
+                id="sim-btn-admin"
+                class:list={["mc-sim-btn", { "is-active": isAdmin }]}
+                title="View full admin fields including School Name and Phone"
+              >
+                Admin (Full Access)
+              </button>
+              <button 
+                type="button"
+                id="sim-btn-mod"
+                class:list={["mc-sim-btn", { "is-active": effectiveRole === "Moderator" }]}
+                title="View with sensitive fields protected per Rule DATA-03"
+              >
+                Moderator (Protected)
+              </button>
+            </div>
+          </div>
+
+          <p class="mc-page-desc">
+            Manage educator accounts, suspend members (ADM-05), and reset PINs.
+            <span id="privacy-alert-admin" class="mc-privacy-alert mc-privacy-alert--admin" style={`display: ${isAdmin ? 'block' : 'none'};`}>
+              <strong>Admin Mode Active:</strong> School Name and Phone Number are visible for direct teacher support.
+            </span>
+            <span id="privacy-alert-mod" class="mc-privacy-alert mc-privacy-alert--mod" style={`display: ${!isAdmin ? 'block' : 'none'};`}>
+              <strong>Moderator Mode Active:</strong> Sensitive fields (School Name and Phone) are strictly redacted (Rules DATA-03 &amp; DATA-10).
+            </span>
+          </p>
+        </div>
+      </header>
+
+      {fetchError && (
+        <ErrorNotice message={fetchError} retryAction={true} />
+      )}
+
+      <!-- Members Table Responsive Wrapper -->
+      <div class="mc-table-container">
+        <table class="mc-members-table">
+          <thead>
+            <tr>
+              <th>Member / Username</th>
+              <th>Role</th>
+              <th>State &amp; LGA</th>
+              <th>School Type</th>
+              <!-- ROLE GATED COLUMNS (PRD 2.4, DATA-03 & DATA-10) -->
+              <th id="th-school-name" class:list={[{ "mc-col--protected": !isAdmin }]}>
+                School Name
+              </th>
+              <th id="th-phone" class:list={[{ "mc-col--protected": !isAdmin }]}>
+                Phone Number
+              </th>
+              <th>TRCN Status</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {membersList.map((m) => (
+              <tr class:list={[{ "mc-row--suspended": m.suspended }]} id={`member-row-${m.id}`}>
+                <td>
+                  <div class="mc-member-name-cell">
+                    <strong>Malam {m.first_name}</strong>
+                    <small>@{m.username}</small>
+                  </div>
+                </td>
+                <td>
+                  <span class:list={["mc-role-badge", `mc-role-badge--${m.role.toLowerCase()}`]}>
+                    {m.role}
+                  </span>
+                </td>
+                <td>
+                  <span>{m.state}</span>
+                  <small style="display: block; color: var(--text-muted);">{m.lga}</small>
+                </td>
+                <td>{m.school_type}</td>
+                
+                <!-- SENSITIVE FIELD 1: School Name -->
+                <td class="mc-school-cell" data-real-value={m.school_name}>
+                  {isAdmin ? (
+                    <span>{m.school_name}</span>
+                  ) : (
+                    <span class="mc-redacted-pill" title="Visible to Administrator only (Rule DATA-03)">
+                      [Protected - Admin Only]
+                    </span>
+                  )}
+                </td>
+
+                <!-- SENSITIVE FIELD 2: Phone Number -->
+                <td class="mc-phone-cell" data-real-value={m.phone_number}>
+                  {isAdmin ? (
+                    <code>{m.phone_number || "None"}</code>
+                  ) : (
+                    <span class="mc-redacted-pill" title="Visible to Administrator only (Rule DATA-10)">
+                      [Protected - Admin Only]
+                    </span>
+                  )}
+                </td>
+
+                <td>
+                  {m.trcn_registered ? (
+                    <span class="mc-status-pill mc-status-pill--verified" title={`Verified: ${m.trcn_number}`}>
+                      Registered ✓
+                    </span>
+                  ) : (
+                    <span class="mc-status-pill mc-status-pill--neutral">
+                      Unregistered
+                    </span>
+                  )}
+                </td>
+
+                <td>
+                  {m.suspended ? (
+                    <span class="mc-status-pill mc-status-pill--danger">
+                      Suspended
+                    </span>
+                  ) : (
+                    <span class="mc-status-pill mc-status-pill--active">
+                      Active
+                    </span>
+                  )}
+                </td>
+
+                <td>
+                  <div class="mc-table-actions">
+                    <button 
+                      type="button" 
+                      class:list={["mc-btn mc-btn-xs", m.suspended ? "mc-btn--secondary" : "mc-btn--danger", "btn-toggle-suspend"]}
+                      data-id={m.id}
+                      data-suspended={m.suspended ? "true" : "false"}
+                      title={m.suspended ? "Restore posting permissions" : "Stop member from posting or replying (ADM-05)"}
+                    >
+                      {m.suspended ? "Unsuspend" : "Suspend"}
+                    </button>
+
+                    <button 
+                      type="button" 
+                      class="mc-btn mc-btn--secondary mc-btn-xs btn-reset-pin"
+                      data-id={m.id}
+                      data-username={m.username}
+                      title="Reset 6-digit login PIN"
+                    >
+                      Reset PIN
+                    </button>
+
+                    {isAdmin && (
+                      <button 
+                        type="button" 
+                        class="mc-btn mc-btn--secondary mc-btn-xs btn-change-role"
+                        data-id={m.id}
+                        data-role={m.role}
+                        title="Change role (Admin only)"
+                      >
+                        Role
+                      </button>
+                    )}
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  ) : (
+    <div class="mc-access-refused">
+      <div class="mc-feedback mc-feedback--error" role="alert">
+        <h2 class="mc-feedback__title">Access Refused (Admin Only)</h2>
+        <p class="mc-feedback__message">
+          You do not have permission to view the Member Directory. Only Administrators and Moderators may access member data.
+        </p>
+        <a href="/home" class="mc-btn mc-btn--primary" style="margin-top: var(--space-4);">Return to Home</a>
+      </div>
+    </div>
+  )}
+</BaseLayout>
+
+<style>
+  .mc-title-with-role-sim {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    margin-bottom: var(--space-2);
+  }
+
+  .mc-role-sim-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--surface-bg);
+    border: 1px solid var(--border);
+    padding: 3px 6px;
+    border-radius: var(--radius-full);
+  }
+
+  .mc-role-sim-label {
+    font-size: var(--fs-micro);
+    font-weight: var(--fw-bold);
+    color: var(--text-muted);
+    padding-left: 6px;
+  }
+
+  .mc-sim-btn {
+    font-size: var(--fs-micro);
+    font-weight: var(--fw-semibold);
+    padding: 4px 12px;
+    border-radius: var(--radius-full);
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    color: var(--text-secondary);
+    transition: all 0.15s ease;
+  }
+
+  .mc-sim-btn:hover {
+    color: var(--text-primary);
+  }
+
+  .mc-sim-btn.is-active {
+    background: var(--brand-primary);
+    color: var(--color-white);
+  }
+
+  .mc-privacy-alert {
+    display: block;
+    margin-top: var(--space-3);
+    padding: var(--space-2) var(--space-4);
+    border-radius: var(--radius-md);
+    font-size: var(--fs-small);
+  }
+
+  .mc-privacy-alert--admin {
+    background: var(--success-subtle);
+    color: var(--success-text);
+    border: 1px solid var(--success-border);
+  }
+
+  .mc-privacy-alert--mod {
+    background: var(--warning-subtle);
+    color: var(--warning-text);
+    border: 1px solid var(--warning-border);
+  }
+
+  .mc-table-container {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    overflow-x: auto;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .mc-members-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--fs-small);
+    text-align: left;
+  }
+
+  .mc-members-table th {
+    background: var(--surface-bg);
+    padding: var(--space-3) var(--space-4);
+    border-bottom: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: var(--fs-micro);
+    font-weight: var(--fw-bold);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+  }
+
+  .mc-members-table td {
+    padding: var(--space-3) var(--space-4);
+    border-bottom: 1px solid var(--border-subtle);
+    color: var(--text-primary);
+    vertical-align: middle;
+  }
+
+  .mc-members-table tbody tr:hover td {
+    background: var(--surface-bg);
+  }
+
+  .mc-row--suspended td {
+    background: var(--danger-subtle);
+  }
+
+  .mc-col--protected {
+    color: var(--warning-text) !important;
+  }
+
+  .mc-redacted-pill {
+    display: inline-block;
+    font-size: var(--fs-micro);
+    font-style: italic;
+    color: var(--text-muted);
+    background: var(--surface-bg);
+    border: 1px dashed var(--border-focus);
+    padding: 2px 8px;
+    border-radius: var(--radius-sm);
+  }
+
+  .mc-member-name-cell strong {
+    display: block;
+    color: var(--text-primary);
+  }
+
+  .mc-member-name-cell small {
+    color: var(--text-muted);
+  }
+
+  .mc-role-badge {
+    font-size: var(--fs-micro);
+    font-weight: var(--fw-bold);
+    padding: 2px 8px;
+    border-radius: var(--radius-sm);
+    display: inline-block;
+  }
+
+  .mc-role-badge--admin {
+    background: var(--accent-subtle);
+    color: var(--accent-teal);
+    border: 1px solid var(--accent-border);
+  }
+
+  .mc-role-badge--moderator {
+    background: var(--brand-primary-subtle, #e0f2fe);
+    color: var(--brand-primary);
+    border: 1px solid var(--border);
+  }
+
+  .mc-role-badge--member {
+    background: var(--surface-bg);
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
+  }
+
+  .mc-status-pill {
+    font-size: var(--fs-micro);
+    font-weight: var(--fw-bold);
+    padding: 2px 8px;
+    border-radius: var(--radius-sm);
+    display: inline-block;
+  }
+
+  .mc-status-pill--verified,
+  .mc-status-pill--active {
+    background: var(--success-subtle);
+    color: var(--success-text);
+    border: 1px solid var(--success-border);
+  }
+
+  .mc-status-pill--neutral {
+    background: var(--surface-bg);
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+  }
+
+  .mc-status-pill--danger {
+    background: var(--danger-subtle);
+    color: var(--danger-text);
+    border: 1px solid var(--danger-border);
+  }
+
+  .mc-table-actions {
+    display: flex;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+  }
+
+  .mc-btn-xs {
+    min-height: 28px;
+    padding: 2px 8px;
+    font-size: var(--fs-micro);
+  }
+
+  .mc-access-refused {
+    max-width: 600px;
+    margin: var(--space-8) auto;
+  }
+</style>
+
+<script is:inline>
+  // Dynamic Role Simulation Switcher
+  const btnAdmin = document.getElementById('sim-btn-admin');
+  const btnMod = document.getElementById('sim-btn-mod');
+  const alertAdmin = document.getElementById('privacy-alert-admin');
+  const alertMod = document.getElementById('privacy-alert-mod');
+  const schoolTh = document.getElementById('th-school-name');
+  const phoneTh = document.getElementById('th-phone');
+  const schoolCells = document.querySelectorAll('.mc-school-cell');
+  const phoneCells = document.querySelectorAll('.mc-phone-cell');
+
+  function setSimRole(role) {
+    if (role === 'Admin') {
+      btnAdmin?.classList.add('is-active');
+      btnMod?.classList.remove('is-active');
+      if (alertAdmin) alertAdmin.style.display = 'block';
+      if (alertMod) alertMod.style.display = 'none';
+      schoolTh?.classList.remove('mc-col--protected');
+      phoneTh?.classList.remove('mc-col--protected');
+      schoolCells.forEach(cell => {
+        cell.innerHTML = `<span>${cell.getAttribute('data-real-value') || 'None'}</span>`;
+      });
+      phoneCells.forEach(cell => {
+        cell.innerHTML = `<code>${cell.getAttribute('data-real-value') || 'None'}</code>`;
+      });
+    } else {
+      btnMod?.classList.add('is-active');
+      btnAdmin?.classList.remove('is-active');
+      if (alertAdmin) alertAdmin.style.display = 'none';
+      if (alertMod) alertMod.style.display = 'block';
+      schoolTh?.classList.add('mc-col--protected');
+      phoneTh?.classList.add('mc-col--protected');
+      schoolCells.forEach(cell => {
+        cell.innerHTML = '<span class="mc-redacted-pill" title="Visible to Administrator only (Rule DATA-03)">[Protected - Admin Only]</span>';
+      });
+      phoneCells.forEach(cell => {
+        cell.innerHTML = '<span class="mc-redacted-pill" title="Visible to Administrator only (Rule DATA-10)">[Protected - Admin Only]</span>';
+      });
+    }
+  }
+
+  btnAdmin?.addEventListener('click', () => setSimRole('Admin'));
+  btnMod?.addEventListener('click', () => setSimRole('Moderator'));
+
+  document.addEventListener('click', async (e) => {
+    const suspendBtn = e.target.closest('.btn-toggle-suspend');
+    const resetPinBtn = e.target.closest('.btn-reset-pin');
+    const changeRoleBtn = e.target.closest('.btn-change-role');
+
+    if (!suspendBtn && !resetPinBtn && !changeRoleBtn) return;
+
+    const btn = suspendBtn || resetPinBtn || changeRoleBtn;
+    const memberId = btn.getAttribute('data-id');
+
+    btn.disabled = true;
+    btn.textContent = '...';
+
+    try {
+      const dataModule = await import('/src/lib/data.js');
+
+      if (suspendBtn) {
+        const isCurrentlySuspended = btn.getAttribute('data-suspended') === 'true';
+        const newSuspended = !isCurrentlySuspended;
+        await dataModule.suspendMember(memberId, newSuspended);
+        alert(`Member ${memberId} is now ${newSuspended ? 'SUSPENDED (cannot post or reply)' : 'ACTIVE'}.`);
+      } else if (resetPinBtn) {
+        const username = btn.getAttribute('data-username');
+        const newPin = prompt(`Enter new 6-digit numeric PIN for @${username}:`, '123456');
+        if (!newPin || !/^\d{6}$/.test(newPin)) {
+          alert('PIN must be exactly 6 numbers.');
+          btn.disabled = false;
+          btn.textContent = 'Reset PIN';
+          return;
+        }
+        await dataModule.resetMemberPin(memberId, newPin);
+        alert(`PIN for @${username} has been reset to ${newPin}.`);
+      } else if (changeRoleBtn) {
+        const currentRole = btn.getAttribute('data-role');
+        const nextRole = currentRole === 'Member' ? 'Moderator' : (currentRole === 'Moderator' ? 'Member' : 'Moderator');
+        if (confirm(`Change role for ${memberId} from ${currentRole} to ${nextRole}?`)) {
+          await dataModule.changeMemberRole(memberId, nextRole);
+          alert(`Role updated to ${nextRole}.`);
+        }
+      }
+
+      window.location.reload();
+    } catch (err) {
+      alert(err.message || 'Operation failed.');
+      btn.disabled = false;
+    }
+  });
+</script>

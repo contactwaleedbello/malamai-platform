@@ -1,0 +1,754 @@
+/* ==========================================================================
+   Malamai Circle - Component Styles (components.css)
+   Strictly two-layer tokens: semantic and role tokens only.
+   No raw primitives, no hardcoded hex. Total CSS kept lightweight under 32KB.
+   ========================================================================== */
+
+/* Layout & Utility Defaults */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+/* Icon baseline */
+.icon {
+  display: inline-block;
+  vertical-align: middle;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  stroke: currentColor;
+  fill: none;
+}
+
+/* --------------------------------------------------------------------------
+   1. Header Component
+   -------------------------------------------------------------------------- */
+.mc-header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: var(--space-2) var(--space-4);
+  width: 100%;
+}
+
+.mc-header__container {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.mc-header__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  text-decoration: none;
+  color: var(--text-primary);
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-title-sm);
+  min-height: var(--touch-min);
+}
+
+.mc-header__brand:hover {
+  color: var(--brand);
+}
+
+.mc-header__brand-badge {
+  font-size: var(--fs-micro);
+  font-weight: var(--fw-semibold);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--surface-bg);
+  color: var(--text-muted);
+  border: 1px solid var(--border-subtle);
+}
+
+.mc-header__actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--target-gap-min);
+}
+
+.mc-header__status-slot {
+  display: flex;
+  align-items: center;
+  gap: var(--target-gap-min);
+}
+
+/* Language Switcher */
+.mc-lang-control {
+  display: inline-flex;
+  align-items: center;
+  background: var(--surface-bg);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 2px;
+  gap: 2px;
+}
+
+.mc-lang-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--touch-min);
+  min-height: var(--touch-min);
+  padding: var(--space-2) var(--space-3);
+  font-family: var(--font-sans);
+  font-size: var(--fs-small);
+  font-weight: var(--fw-medium);
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.mc-lang-btn[aria-pressed="true"] {
+  background: var(--surface);
+  color: var(--text-primary);
+  font-weight: var(--fw-bold);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+/* --------------------------------------------------------------------------
+   2. Buttons Component
+   -------------------------------------------------------------------------- */
+.mc-btn-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--target-gap-min);
+  align-items: center;
+}
+
+.mc-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--touch-min);
+  min-width: var(--touch-min);
+  padding: var(--space-3) var(--space-5);
+  font-family: var(--font-sans);
+  font-size: var(--fs-body);
+  font-weight: var(--fw-semibold);
+  line-height: 1;
+  text-decoration: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+/* Primary Button */
+.mc-btn--primary {
+  background: var(--button-primary-bg);
+  color: var(--button-primary-fg);
+  border-color: var(--button-primary-bg);
+}
+
+.mc-btn--primary:hover {
+  background: var(--brand-hover);
+  border-color: var(--brand-hover);
+}
+
+/* Secondary Button */
+.mc-btn--secondary {
+  background: var(--surface);
+  color: var(--text-primary);
+  border-color: var(--input-border);
+}
+
+.mc-btn--secondary:hover {
+  background: var(--surface-bg);
+  border-color: var(--text-primary);
+}
+
+/* Destructive Button */
+.mc-btn--destructive {
+  background: var(--button-danger-bg);
+  color: var(--button-danger-fg);
+  border-color: var(--button-danger-bg);
+}
+
+.mc-btn--destructive:hover {
+  filter: brightness(0.92);
+}
+
+/* Disabled Button (Not focusable) */
+.mc-btn--disabled,
+.mc-btn:disabled,
+.mc-btn[aria-disabled="true"] {
+  background: var(--surface-bg);
+  color: var(--text-disabled);
+  border-color: var(--border-subtle);
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* --------------------------------------------------------------------------
+   3. Inputs & Forms Component
+   -------------------------------------------------------------------------- */
+.mc-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin-bottom: var(--space-4);
+  max-width: var(--prose-max);
+  width: 100%;
+}
+
+.mc-label {
+  font-size: var(--fs-small);
+  font-weight: var(--fw-semibold);
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin-bottom: var(--space-1);
+}
+
+.mc-label__required {
+  color: var(--feedback-error);
+}
+
+.mc-input,
+.mc-select,
+.mc-textarea {
+  display: block;
+  width: 100%;
+  min-height: var(--touch-min);
+  padding: var(--space-3) var(--space-3);
+  font-family: var(--font-sans);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  color: var(--text-primary);
+  background-color: var(--surface);
+  border: 2px solid var(--input-border);
+  border-radius: var(--radius-md);
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.mc-textarea {
+  min-height: 110px;
+  resize: vertical;
+}
+
+/* Select wrapper for custom chevron icon */
+.mc-select-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.mc-select-wrapper select {
+  padding-right: var(--space-10);
+  cursor: pointer;
+}
+
+.mc-select-wrapper .mc-select-icon {
+  position: absolute;
+  right: var(--space-3);
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: var(--text-muted);
+}
+
+/* Helper Text */
+.mc-helper-text {
+  font-size: var(--fs-small);
+  line-height: var(--lh-small);
+  color: var(--text-muted);
+  margin-top: var(--space-1);
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+/* Error State */
+.mc-form-group--error .mc-input,
+.mc-form-group--error .mc-select,
+.mc-form-group--error .mc-textarea,
+.mc-input[aria-invalid="true"],
+.mc-select[aria-invalid="true"],
+.mc-textarea[aria-invalid="true"] {
+  border-color: var(--input-border-error);
+}
+
+.mc-error-text {
+  font-size: var(--fs-small);
+  font-weight: var(--fw-medium);
+  line-height: var(--lh-small);
+  color: var(--feedback-error);
+  margin-top: var(--space-1);
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+/* Disabled Form Field */
+.mc-input:disabled,
+.mc-select:disabled,
+.mc-textarea:disabled {
+  background-color: var(--surface-bg);
+  border-color: var(--border-subtle);
+  color: var(--text-disabled);
+  cursor: not-allowed;
+}
+
+/* --------------------------------------------------------------------------
+   4. Feedback Banners Component (Error, Warning, Info, Success)
+   Shows color + text label + icon + left border. Never color alone.
+   -------------------------------------------------------------------------- */
+.mc-feedback-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  max-width: var(--prose-max);
+  width: 100%;
+}
+
+.mc-feedback {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  border-left-width: 6px;
+  border-left-style: solid;
+  color: var(--text-primary);
+  width: 100%;
+}
+
+.mc-feedback__icon {
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.mc-feedback__body {
+  flex: 1;
+}
+
+.mc-feedback__title {
+  display: block;
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-body);
+  margin-bottom: var(--space-1);
+}
+
+.mc-feedback__message {
+  margin: 0;
+  font-size: var(--fs-small);
+  line-height: var(--lh-small);
+  color: var(--text-primary);
+}
+
+/* Variant: Error */
+.mc-feedback--error {
+  background: var(--feedback-error-tint);
+  border-left-color: var(--feedback-error);
+}
+.mc-feedback--error .mc-feedback__icon,
+.mc-feedback--error .mc-feedback__title {
+  color: var(--feedback-error);
+}
+
+/* Variant: Warning */
+.mc-feedback--warning {
+  background: var(--feedback-warning-tint);
+  border-left-color: var(--feedback-warning);
+}
+.mc-feedback--warning .mc-feedback__icon,
+.mc-feedback--warning .mc-feedback__title {
+  color: var(--feedback-warning);
+}
+
+/* Variant: Info */
+.mc-feedback--info {
+  background: var(--feedback-info-tint);
+  border-left-color: var(--feedback-info);
+}
+.mc-feedback--info .mc-feedback__icon,
+.mc-feedback--info .mc-feedback__title {
+  color: var(--feedback-info);
+}
+
+/* Variant: Success */
+.mc-feedback--success {
+  background: var(--feedback-success-tint);
+  border-left-color: var(--feedback-success);
+}
+.mc-feedback--success .mc-feedback__icon,
+.mc-feedback--success .mc-feedback__title {
+  color: var(--feedback-success);
+}
+
+/* --------------------------------------------------------------------------
+   5. Status Badges & Cards Component
+   Uses statusMap definitions:
+   - pending:  label "Still needs an answer", icon "clock",  border "dashed",      token: status-pending
+   - success:  label "This helped",           icon "check",  border "solid",       token: status-success
+   - active:   label "Waiting for review",    icon "eye",    border "double",      token: status-active
+   - danger:   label "Hidden or removed",     icon "slash",  border "thick-solid", token: status-danger
+   - neutral:  label "Draft",                 icon "dot",    border "thin-solid",  token: status-neutral
+   - verified: label "TRCN registered",       icon "shield", border "solid",       token: status-verified
+   -------------------------------------------------------------------------- */
+
+/* Status Badge / Chip */
+.mc-badge-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--target-gap-min);
+  align-items: center;
+}
+
+.mc-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-3);
+  min-height: 32px;
+  font-size: var(--fs-small);
+  font-weight: var(--fw-semibold);
+  line-height: 1.2;
+  border-radius: var(--radius-full);
+  border-width: 2px;
+  white-space: nowrap;
+}
+
+.mc-status-badge .icon {
+  width: 16px;
+  height: 16px;
+}
+
+/* Badges per statusMap */
+.mc-status-badge--pending {
+  background: var(--status-pending);
+  color: var(--on-pending);
+  border-style: dashed;
+  border-color: var(--on-pending);
+}
+
+.mc-status-badge--success {
+  background: var(--status-success);
+  color: var(--on-success);
+  border-style: solid;
+  border-color: var(--on-success);
+}
+
+.mc-status-badge--active {
+  background: var(--status-active);
+  color: var(--on-active);
+  border-style: double;
+  border-width: 3px;
+  border-color: var(--on-active);
+}
+
+.mc-status-badge--danger {
+  background: var(--status-danger);
+  color: var(--on-danger);
+  border-style: solid;
+  border-width: 3px;
+  border-color: var(--on-danger);
+}
+
+.mc-status-badge--neutral {
+  background: var(--status-neutral);
+  color: var(--on-neutral);
+  border-style: solid;
+  border-width: 1px;
+  border-color: var(--on-neutral);
+}
+
+.mc-status-badge--verified {
+  background: var(--status-verified);
+  color: var(--on-verified);
+  border-style: solid;
+  border-color: var(--on-verified);
+}
+
+/* Status Cards */
+.mc-status-card-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  max-width: var(--prose-max);
+  width: 100%;
+}
+
+.mc-status-card {
+  background: var(--surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.mc-status-card__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+.mc-status-card__label {
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-body);
+}
+
+.mc-status-card__message {
+  color: var(--text-primary);
+  font-size: var(--fs-small);
+  line-height: var(--lh-small);
+  margin: 0;
+}
+
+/* Status card border shapes and icon colors */
+.mc-status-card--pending {
+  border-left: 6px dashed var(--status-pending);
+}
+.mc-status-card--pending .mc-status-card__icon,
+.mc-status-card--pending .mc-status-card__label {
+  color: var(--status-pending);
+}
+
+.mc-status-card--success {
+  border-left: 6px solid var(--status-success);
+}
+.mc-status-card--success .mc-status-card__icon,
+.mc-status-card--success .mc-status-card__label {
+  color: var(--status-success);
+}
+
+.mc-status-card--active {
+  border-left: 6px double var(--status-active);
+}
+.mc-status-card--active .mc-status-card__icon,
+.mc-status-card--active .mc-status-card__label {
+  color: var(--status-active);
+}
+
+.mc-status-card--danger {
+  border-left: 8px solid var(--status-danger);
+}
+.mc-status-card--danger .mc-status-card__icon,
+.mc-status-card--danger .mc-status-card__label {
+  color: var(--status-danger);
+}
+
+.mc-status-card--neutral {
+  border-left: 3px solid var(--status-neutral);
+}
+.mc-status-card--neutral .mc-status-card__icon,
+.mc-status-card--neutral .mc-status-card__label {
+  color: var(--status-neutral);
+}
+
+.mc-status-card--verified {
+  border-left: 6px solid var(--status-verified);
+}
+.mc-status-card--verified .mc-status-card__icon,
+.mc-status-card--verified .mc-status-card__label {
+  color: var(--status-verified);
+}
+
+/* --------------------------------------------------------------------------
+   6. Data Table Component
+   Sticky header, zebra striping, numeric columns right-aligned in mono,
+   isolated horizontal scroll container.
+   -------------------------------------------------------------------------- */
+.mc-table-container {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  margin-bottom: var(--space-4);
+}
+
+.mc-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-sans);
+  font-size: var(--fs-small);
+  text-align: left;
+  min-width: 540px;
+}
+
+.mc-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--surface);
+  color: var(--text-primary);
+  font-weight: var(--fw-semibold);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 2px solid var(--border-strong);
+  white-space: nowrap;
+}
+
+.mc-table td {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+  vertical-align: middle;
+}
+
+/* Zebra striping using surface and surface-bg */
+.mc-table tbody tr:nth-child(odd) {
+  background-color: var(--surface);
+}
+
+.mc-table tbody tr:nth-child(even) {
+  background-color: var(--surface-bg);
+}
+
+.mc-table tbody tr:hover {
+  background-color: var(--surface-elevated);
+}
+
+/* Numeric column right-aligned in font-mono */
+.mc-table .mc-table__numeric {
+  text-align: right;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* --------------------------------------------------------------------------
+   7. Modal Dialog Component
+   Scrim with surface-overlay, focus trapped inside, min 48px close button,
+   focus returned to trigger on close.
+   -------------------------------------------------------------------------- */
+.mc-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--surface-overlay);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+  z-index: 999;
+}
+
+.mc-modal-backdrop[hidden] {
+  display: none !important;
+}
+
+.mc-modal {
+  background: var(--surface);
+  color: var(--text-primary);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-subtle);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.mc-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.mc-modal__title {
+  font-size: var(--fs-title-sm);
+  font-weight: var(--fw-bold);
+  margin: 0;
+}
+
+.mc-modal__close-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--touch-min);
+  min-height: var(--touch-min);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: var(--space-2);
+}
+
+.mc-modal__close-btn:hover {
+  background: var(--surface-bg);
+  color: var(--text-primary);
+}
+
+.mc-modal__body {
+  padding: var(--space-5);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  flex: 1;
+}
+
+.mc-modal__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--target-gap-min);
+  padding: var(--space-4) var(--space-5);
+  border-top: 1px solid var(--border-subtle);
+  background: var(--surface-bg);
+}
+
+/* --------------------------------------------------------------------------
+   8. Theme Toggle Component
+   Light, Dark, System accessible segmented control / radio group.
+   Min 48px interactive target, visible focus ring, survives reload.
+   -------------------------------------------------------------------------- */
+.mc-theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  background: var(--surface-bg);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 4px;
+  gap: var(--target-gap-min);
+}
+
+.mc-theme-toggle__option {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-width: var(--touch-min);
+  min-height: var(--touch-min);
+  padding: var(--space-2) var(--space-3);
+  font-family: var(--font-sans);
+  font-size: var(--fs-small);
+  font-weight: var(--fw-medium);
+  color: var(--text-muted);
+  background: transparent;
+  border: 2px solid transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.mc-theme-toggle__option:hover {
+  color: var(--text-primary);
+}
+
+.mc-theme-toggle__option[aria-checked="true"],
+.mc-theme-toggle__option[aria-pressed="true"],
+.mc-theme-toggle__option.is-active {
+  background: var(--surface);
+  color: var(--text-primary);
+  font-weight: var(--fw-bold);
+  border-color: var(--border-subtle);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}

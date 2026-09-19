@@ -1,0 +1,89 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="Privacy Notice / Tsare Sirri" activeNav="profile">
+  <div class="mc-privacy-container">
+    <div class="mc-privacy-badge">Privacy Notice • Tsare Sirri</div>
+    <h1 class="mc-privacy-title">How Malamai Circle Protects Your Privacy</h1>
+    <p class="mc-privacy-subtitle">Simple, honest rules. No tracking, no pupil data, no advertising.</p>
+
+    <div class="mc-privacy-section">
+      <h2>1. No email or personal phone numbers needed</h2>
+      <p>You join with a username and a 6-digit PIN. We do not require an email address or SMS verification, keeping entry low-friction and anonymous.</p>
+    </div>
+
+    <div class="mc-privacy-section">
+      <h2>2. Protection for children and pupils</h2>
+      <p>Malamai Circle is strictly for adult teachers and educators. Under our community rules, no pupil names, photos, or identifying information may ever be posted.</p>
+    </div>
+
+    <div class="mc-privacy-section">
+      <h2>3. Shared phone protection</h2>
+      <p>When you check "shared phone" at sign-in, your session and saved materials can be cleared immediately upon signing out so other people using the phone cannot access your account.</p>
+    </div>
+
+    <div class="mc-privacy-section">
+      <h2>4. Zero third-party trackers or ads</h2>
+      <p>We do not use tracking pixels, third-party analytics scripts, or commercial advertising networks. All assets are self-contained and run on system fonts.</p>
+    </div>
+
+    <div class="mc-privacy-section">
+      <h2>5. Questions or complaints</h2>
+      <p>If you see a post or document that violates privacy or school standards, contact: <a href="mailto:complaints@malamaicircle.ng" style="color: var(--brand-primary); font-weight: var(--fw-bold);">complaints@malamaicircle.ng</a>.</p>
+    </div>
+
+    <div style="margin-top: var(--space-6);">
+      <a href="/" class="mc-btn mc-btn--secondary" style="display: inline-flex; align-items: center; min-height: var(--touch-min);">
+        &larr; Back to Malamai Circle Home
+      </a>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .mc-privacy-container {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-6);
+  }
+  .mc-privacy-badge {
+    display: inline-block;
+    font-size: var(--fs-micro);
+    font-weight: var(--fw-bold);
+    color: var(--brand-primary);
+    background: var(--background);
+    border: 1px solid var(--border);
+    padding: 2px 8px;
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--space-2);
+  }
+  .mc-privacy-title {
+    font-size: var(--fs-h2);
+    font-weight: var(--fw-bold);
+    color: var(--text-primary);
+    margin: 0 0 var(--space-1) 0;
+  }
+  .mc-privacy-subtitle {
+    font-size: var(--fs-body);
+    color: var(--text-muted);
+    margin: 0 0 var(--space-6) 0;
+  }
+  .mc-privacy-section {
+    border-top: 1px solid var(--border);
+    padding: var(--space-4) 0;
+  }
+  .mc-privacy-section h2 {
+    font-size: var(--fs-title-sm);
+    font-weight: var(--fw-bold);
+    color: var(--text-primary);
+    margin: 0 0 var(--space-2) 0;
+  }
+  .mc-privacy-section p {
+    font-size: var(--fs-body);
+    color: var(--text-muted);
+    line-height: var(--lh-body);
+    margin: 0;
+  }
+</style>

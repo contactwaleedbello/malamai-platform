@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Malamai Circle - Status Badges & Cards</title>
+  <link rel="stylesheet" href="../tokens/theme.css">
+  <link rel="stylesheet" href="components.css">
+  <script src="../theme-helper.js"></script>
+</head>
+<body style="padding: var(--space-6); background: var(--surface-bg);">
+
+  <main style="max-width: var(--prose-max); margin: 0 auto; background: var(--surface); padding: var(--space-6); border-radius: var(--radius-lg); border: 1px solid var(--border-subtle);">
+    <h1 style="font-size: var(--fs-h2); line-height: var(--lh-h2); margin-top: 0; color: var(--text-primary);">Status Badges & Cards</h1>
+    <p style="color: var(--text-muted); font-size: var(--fs-body); margin-bottom: var(--space-6);">
+      Every status uses color plus text label plus icon plus border shape from <code>statusMap</code>. Never color alone.
+    </p>
+
+    <!-- 1. Status Badges / Chips -->
+    <section aria-labelledby="status-badges-title" style="margin-bottom: var(--space-8);">
+      <h2 id="status-badges-title" style="font-size: var(--fs-title-sm); color: var(--text-primary); margin-bottom: var(--space-3);">
+        Status Chips / Badges
+      </h2>
+      <div class="mc-badge-group">
+        <!-- Pending -->
+        <span class="mc-status-badge mc-status-badge--pending" id="badge-pending">
+          <svg class="icon" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+          <span>Still needs an answer</span>
+        </span>
+
+        <!-- Success -->
+        <span class="mc-status-badge mc-status-badge--success" id="badge-success">
+          <svg class="icon" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+          <span>This helped</span>
+        </span>
+
+        <!-- Active -->
+        <span class="mc-status-badge mc-status-badge--active" id="badge-active">
+          <svg class="icon" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+            <circle cx="12" cy="12" r="3"></circle>
+          </svg>
+          <span>Waiting for review</span>
+        </span>
+
+        <!-- Danger -->
+        <span class="mc-status-badge mc-status-badge--danger" id="badge-danger">
+          <svg class="icon" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line>
+          </svg>
+          <span>Hidden or removed</span>
+        </span>
+
+        <!-- Neutral -->
+        <span class="mc-status-badge mc-status-badge--neutral" id="badge-neutral">
+          <svg class="icon" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="4" fill="currentColor"></circle>
+          </svg>
+          <span>Draft</span>
+        </span>
+
+        <!-- Verified -->
+        <span class="mc-status-badge mc-status-badge--verified" id="badge-verified">
+          <svg class="icon" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+          </svg>
+          <span>TRCN registered</span>
+        </span>
+      </div>
+    </section>
+
+    <!-- 2. Status Cards -->
+    <section aria-labelledby="status-cards-title">
+      <h2 id="status-cards-title" style="font-size: var(--fs-title-sm); color: var(--text-primary); margin-bottom: var(--space-4);">
+        Status Cards (Differentiated by Left Border Shape & Icon)
+      </h2>
+
+      <div class="mc-status-card-list">
+        <!-- Pending Card (Dashed Border) -->
+        <article class="mc-status-card mc-status-card--pending" id="card-pending">
+          <div class="mc-status-card__header">
+            <svg class="icon mc-status-card__icon" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+            <span class="mc-status-card__label">Still needs an answer</span>
+          </div>
+          <p class="mc-status-card__message">Question posted in Secondary Math: "How to introduce quadratic equations with local examples?" No verified answers yet.</p>
+        </article>
+
+        <!-- Success Card (Solid Border) -->
+        <article class="mc-status-card mc-status-card--success" id="card-success">
+          <div class="mc-status-card__header">
+            <svg class="icon mc-status-card__icon" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span class="mc-status-card__label">This helped</span>
+          </div>
+          <p class="mc-status-card__message">Community response accepted by teacher Amina: 14 teachers marked this Hausa-English glossary as helpful.</p>
+        </article>
+
+        <!-- Active Card (Double Border) -->
+        <article class="mc-status-card mc-status-card--active" id="card-active">
+          <div class="mc-status-card__header">
+            <svg class="icon mc-status-card__icon" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+            <span class="mc-status-card__label">Waiting for review</span>
+          </div>
+          <p class="mc-status-card__message">Submitted resource: "Interactive Science Lab with Low-Cost Materials". In queue for peer mentor feedback.</p>
+        </article>
+
+        <!-- Danger Card (Thick-Solid Border) -->
+        <article class="mc-status-card mc-status-card--danger" id="card-danger">
+          <div class="mc-status-card__header">
+            <svg class="icon mc-status-card__icon" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line>
+            </svg>
+            <span class="mc-status-card__label">Hidden or removed</span>
+          </div>
+          <p class="mc-status-card__message">This submission was flagged by moderators for copyright verification and is temporarily hidden from the public feed.</p>
+        </article>
+
+        <!-- Neutral Card (Thin-Solid Border) -->
+        <article class="mc-status-card mc-status-card--neutral" id="card-neutral">
+          <div class="mc-status-card__header">
+            <svg class="icon mc-status-card__icon" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="4" fill="currentColor"></circle>
+            </svg>
+            <span class="mc-status-card__label">Draft</span>
+          </div>
+          <p class="mc-status-card__message">Lesson plan for Week 4 English Grammar. Saved locally on device; not yet shared with circle members.</p>
+        </article>
+
+        <!-- Verified Card (Solid Border) -->
+        <article class="mc-status-card mc-status-card--verified" id="card-verified">
+          <div class="mc-status-card__header">
+            <svg class="icon mc-status-card__icon" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+            </svg>
+            <span class="mc-status-card__label">TRCN registered</span>
+          </div>
+          <p class="mc-status-card__message">Teacher credentials verified with Teachers Registration Council of Nigeria database.</p>
+        </article>
+      </div>
+    </section>
+
+  </main>
+
+</body>
+</html>

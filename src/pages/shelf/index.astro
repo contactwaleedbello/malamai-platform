@@ -1,0 +1,607 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import ErrorNotice from "../../components/ErrorNotice.astro";
+import { getResources, getCurrentUser } from "../../lib/data.js";
+
+const url = new URL(Astro.request.url);
+const subjectFilter = url.searchParams.get("subject") || "";
+const classFilter = url.searchParams.get("class") || "";
+const languageFilter = url.searchParams.get("lang") || "";
+
+let resources = [];
+let user = null;
+let fetchError = null;
+
+try {
+  user = await getCurrentUser();
+  resources = await getResources({
+    subject: subjectFilter,
+    class_level: classFilter,
+    language: languageFilter
+  });
+} catch (e) {
+  fetchError = e.message || "Failed to load resource shelf.";
+}
+
+const subjects = [
+  "Mathematics",
+  "Basic Science",
+  "English Language",
+  "Hausa",
+  "Social Studies",
+  "Agricultural Science",
+  "Basic Technology",
+  "Chemistry",
+  "Biology",
+  "Physics"
+];
+
+const classLevels = [
+  "Primary 1", "Primary 2", "Primary 3", "Primary 4", "Primary 5", "Primary 6",
+  "JSS 1", "JSS 2", "JSS 3",
+  "SS 1", "SS 2", "SS 3"
+];
+
+function getFileType(fileUrl) {
+  if (!fileUrl) return "PDF";
+  const lower = fileUrl.toLowerCase();
+  if (lower.endsWith(".png") || lower.endsWith(".jpg") || lower.endsWith(".jpeg") || lower.endsWith(".webp")) {
+    return "Image";
+  }
+  return "PDF";
+}
+
+function formatDate(isoStr) {
+  try {
+    const d = new Date(isoStr);
+    return d.toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" });
+  } catch {
+    return "Recent";
+  }
+}
+
+// Prepare dynamic empty-state prompt redirect to Ask Form (PRD Rule F2-Empty)
+const askRedirectQuery = new URLSearchParams();
+if (subjectFilter) askRedirectQuery.set("subject", subjectFilter);
+if (classFilter) askRedirectQuery.set("class", classFilter);
+const askRedirectUrl = `/ask${askRedirectQuery.toString() ? `?${askRedirectQuery.toString()}` : ""}`;
+---
+
+<BaseLayout title="Resource Shelf" activeNav="resources">
+
+  <!-- Header -->
+  <div class="mc-shelf-header">
+    <div>
+      <h1 class="mc-shelf-header__title">Teacher Resource Shelf</h1>
+      <p class="mc-shelf-header__subtitle">
+        Classroom-tested lesson plans, worksheets, and teaching aids under 2 MB.
+      </p>
+    </div>
+    <div class="mc-shelf-header__actions">
+      <a href="/shelf/upload" class="mc-btn mc-btn--primary" id="btn-upload-top">
+        <svg class="icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="17 8 12 3 7 8"></polyline>
+          <line x1="12" y1="3" x2="12" y2="15"></line>
+        </svg>
+        <span>Add a resource / Ƙara kayan aiki</span>
+      </a>
+    </div>
+  </div>
+
+  {fetchError && (
+    <ErrorNotice message={fetchError} retryAction={true} />
+  )}
+
+  <!-- FILTER PANEL (PRD Rule F1-03/F2: Filters only, no search box) -->
+  <section class="mc-filter-panel" aria-label="Resource shelf filters">
+    <form method="get" action="/shelf" id="filter-form" class="mc-filter-grid">
+      
+      <!-- Subject Filter -->
+      <div class="mc-filter-field">
+        <label for="filter-subject" class="mc-filter-label">Subject</label>
+        <div class="mc-select-wrapper">
+          <select id="filter-subject" name="subject" class="mc-select" onchange="this.form.submit()">
+            <option value="">All Subjects</option>
+            {subjects.map((sub) => (
+              <option value={sub} selected={subjectFilter.toLowerCase() === sub.toLowerCase()}>{sub}</option>
+            ))}
+          </select>
+          <svg class="icon mc-select-icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </div>
+      </div>
+
+      <!-- Class Level Filter -->
+      <div class="mc-filter-field">
+        <label for="filter-class" class="mc-filter-label">Class Level</label>
+        <div class="mc-select-wrapper">
+          <select id="filter-class" name="class" class="mc-select" onchange="this.form.submit()">
+            <option value="">All Classes</option>
+            {classLevels.map((lvl) => (
+              <option value={lvl} selected={classFilter === lvl}>{lvl}</option>
+            ))}
+          </select>
+          <svg class="icon mc-select-icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </div>
+      </div>
+
+      <!-- Language Filter -->
+      <div class="mc-filter-field">
+        <label for="filter-lang" class="mc-filter-label">Language</label>
+        <div class="mc-select-wrapper">
+          <select id="filter-lang" name="lang" class="mc-select" onchange="this.form.submit()">
+            <option value="">All Languages</option>
+            <option value="English" selected={languageFilter.toLowerCase() === "english"}>English</option>
+            <option value="Hausa" selected={languageFilter.toLowerCase() === "hausa"}>Hausa</option>
+          </select>
+          <svg class="icon mc-select-icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </div>
+      </div>
+
+      <!-- Reset Filter Link -->
+      {(subjectFilter || classFilter || languageFilter) && (
+        <div class="mc-filter-actions">
+          <a href="/shelf" class="mc-filter-reset-link">
+            Clear all filters
+          </a>
+        </div>
+      )}
+
+    </form>
+  </section>
+
+  <!-- RESOURCE GRID -->
+  <section class="mc-resources-container" aria-label="Worksheets and lesson plans" id="resources-shelf-list">
+    
+    {/* PRD Empty State Rule: "Nothing here yet for this filter. Want to ask instead?" */}
+    <div class="mc-empty-box" id="empty-shelf-box" style={resources.length === 0 ? "display: flex;" : "display: none;"}>
+      <svg class="icon mc-empty-icon" viewBox="0 0 24 24" width="48" height="48" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+      </svg>
+      <h2 class="mc-empty-title">Nothing here yet for this filter. Want to ask instead?</h2>
+      <p class="mc-empty-subtitle">
+        Babu kayan aiki a wannan fannin tukuna. Kuna son yin tambaya a maimakon haka?
+      </p>
+      <a href={askRedirectUrl} class="mc-btn mc-btn--primary mc-empty-cta" id="btn-ask-from-empty">
+        <svg class="icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        <span>Ask a question for {subjectFilter || "this subject"}</span>
+      </a>
+    </div>
+
+    {resources.length > 0 && (
+      <div class="mc-resource-grid" id="resource-cards-wrapper">
+        {resources.map((res) => {
+          const fileType = getFileType(res.file_url || res.fileUrl);
+          const isPending = res.status === "pending";
+
+          return (
+            <article 
+              class="mc-resource-card" 
+              id={`res-card-${res.id}`}
+              data-subject={res.subject}
+              data-class={res.class_level || res.classLevel}
+              data-lang={res.language}
+            >
+              <!-- Card Header / Meta Badges -->
+              <div class="mc-resource-header">
+                <div class="mc-resource-badges">
+                  <span class="mc-tag mc-tag--subject">{res.subject}</span>
+                  <span class="mc-tag mc-tag--class">{res.class_level || res.classLevel}</span>
+                  <span class={`mc-file-type-pill ${fileType === 'PDF' ? 'mc-file-type-pill--pdf' : 'mc-file-type-pill--img'}`}>
+                    {fileType}
+                  </span>
+                </div>
+
+                <span class="mc-file-size-badge">
+                  {res.file_size || res.fileSize || "75 KB"}
+                </span>
+              </div>
+
+              <!-- Title -->
+              <h2 class="mc-resource-title">
+                <a href={`/shelf/${res.id}`} class="mc-resource-link">
+                  {res.title}
+                </a>
+              </h2>
+
+              <!-- Status & License Info -->
+              <div class="mc-resource-meta-row">
+                <span class="mc-license-tag" title="License terms">
+                  {res.license || "CC-BY"}
+                </span>
+
+                {isPending && (
+                  <span class="mc-pending-badge" title="Under moderator review">
+                    <svg class="icon" viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    <span>Waiting for review</span>
+                  </span>
+                )}
+              </div>
+
+              <!-- Footer: Uploader & 'I used this' Counter -->
+              <div class="mc-resource-footer">
+                <div class="mc-uploader-info">
+                  <span>Shared by Malam {res.uploader_first_name || (res.author && res.author.firstName)}</span>
+                  <span class="mc-dot">•</span>
+                  <time datetime={res.created_at}>{formatDate(res.created_at)}</time>
+                </div>
+
+                <!-- 'I used this' Counter Badge (PRD Rule F2-08) -->
+                <div class="mc-used-badge" title="Teachers who used this worksheet in their classroom">
+                  <svg class="icon" viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                  </svg>
+                  <span>Used by <strong>{res.used_count || res.usedCount || 0}</strong> teachers</span>
+                </div>
+              </div>
+
+            </article>
+          );
+        })}
+      </div>
+    )}
+
+  </section>
+
+</BaseLayout>
+
+<!-- Client-side Script: Fast Filtering & Empty State Dynamic Updates -->
+<script>
+  const subjectSelect = document.getElementById('filter-subject') as HTMLSelectElement | null;
+  const classSelect = document.getElementById('filter-class') as HTMLSelectElement | null;
+  const langSelect = document.getElementById('filter-lang') as HTMLSelectElement | null;
+  const emptyBox = document.getElementById('empty-shelf-box');
+  const askBtn = document.getElementById('btn-ask-from-empty') as HTMLAnchorElement | null;
+  const cards = document.querySelectorAll<HTMLElement>('.mc-resource-card');
+
+  function filterShelf() {
+    const selectedSub = (subjectSelect?.value || '').toLowerCase();
+    const selectedClass = classSelect?.value || '';
+    const selectedLang = (langSelect?.value || '').toLowerCase();
+
+    let matches = 0;
+    cards.forEach((card) => {
+      const cardSub = (card.getAttribute('data-subject') || '').toLowerCase();
+      const cardClass = card.getAttribute('data-class') || '';
+      const cardLang = (card.getAttribute('data-lang') || '').toLowerCase();
+
+      const matchSub = !selectedSub || cardSub === selectedSub;
+      const matchClass = !selectedClass || cardClass === selectedClass;
+      const matchLang = !selectedLang || cardLang === selectedLang;
+
+      if (matchSub && matchClass && matchLang) {
+        card.style.display = 'flex';
+        matches++;
+      } else {
+        card.style.display = 'none';
+      }
+    });
+
+    if (emptyBox) {
+      emptyBox.style.display = matches === 0 ? 'flex' : 'none';
+    }
+
+    if (askBtn) {
+      const params = new URLSearchParams();
+      if (subjectSelect?.value) params.set('subject', subjectSelect.value);
+      if (classSelect?.value) params.set('class', classSelect.value);
+      askBtn.href = `/ask${params.toString() ? `?${params.toString()}` : ''}`;
+      const labelSpan = askBtn.querySelector('span');
+      if (labelSpan) {
+        labelSpan.textContent = `Ask a question for ${subjectSelect?.value || 'this subject'}`;
+      }
+    }
+  }
+
+  subjectSelect?.addEventListener('change', filterShelf);
+  classSelect?.addEventListener('change', filterShelf);
+  langSelect?.addEventListener('change', filterShelf);
+</script>
+
+<style>
+  .mc-shelf-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+  }
+
+  .mc-shelf-header__title {
+    font-size: var(--fs-h2);
+    font-weight: var(--fw-bold);
+    color: var(--brand-navy);
+    margin: 0 0 var(--space-1) 0;
+    line-height: var(--lh-h2);
+  }
+
+  .mc-shelf-header__subtitle {
+    font-size: var(--fs-small);
+    color: var(--text-secondary);
+    margin: 0;
+  }
+
+  .mc-shelf-header__actions {
+    display: flex;
+    align-items: center;
+  }
+
+  /* Filter Panel */
+  .mc-filter-panel {
+    background: var(--surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: var(--space-3) var(--space-4);
+    margin-bottom: var(--space-5);
+    box-shadow: var(--shadow-subtle);
+  }
+
+  .mc-filter-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-3);
+    align-items: flex-end;
+  }
+
+  @media (min-width: 640px) {
+    .mc-filter-grid {
+      grid-template-columns: 1fr 1fr 1fr;
+    }
+  }
+
+  .mc-filter-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .mc-filter-label {
+    font-size: var(--fs-micro);
+    font-weight: var(--fw-semibold);
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .mc-filter-actions {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: flex-end;
+    padding-top: var(--space-2);
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .mc-filter-reset-link {
+    font-size: var(--fs-micro);
+    color: var(--brand-primary);
+    font-weight: var(--fw-semibold);
+    text-decoration: none;
+  }
+
+  .mc-filter-reset-link:hover {
+    text-decoration: underline;
+  }
+
+  /* Resource Grid */
+  .mc-resource-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+  }
+
+  @media (min-width: 640px) {
+    .mc-resource-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  .mc-resource-card {
+    background: var(--surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: var(--space-5);
+    box-shadow: var(--shadow-card);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  }
+
+  .mc-resource-card:hover {
+    border-color: var(--border-strong);
+    box-shadow: var(--shadow-elevated);
+  }
+
+  .mc-resource-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+    margin-bottom: var(--space-3);
+  }
+
+  .mc-resource-badges {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .mc-tag {
+    font-size: var(--fs-micro);
+    font-weight: var(--fw-semibold);
+    padding: 2px 8px;
+    border-radius: var(--radius-full);
+  }
+
+  .mc-tag--subject {
+    background: var(--brand-primary-tint);
+    color: var(--brand-primary);
+    border: 1px solid var(--border-subtle);
+  }
+
+  .mc-tag--class {
+    background: var(--surface-subtle);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-subtle);
+  }
+
+  .mc-file-type-pill {
+    font-size: var(--fs-micro);
+    font-weight: var(--fw-bold);
+    padding: 2px 8px;
+    border-radius: var(--radius-sm);
+    text-transform: uppercase;
+  }
+
+  .mc-file-type-pill--pdf {
+    background: var(--danger-tint);
+    color: var(--danger);
+    border: 1px solid var(--danger-border);
+  }
+
+  .mc-file-type-pill--img {
+    background: var(--info-tint);
+    color: var(--info);
+    border: 1px solid var(--info-border);
+  }
+
+  .mc-file-size-badge {
+    font-size: var(--fs-micro);
+    font-family: var(--font-mono);
+    color: var(--text-muted);
+    background: var(--surface-subtle);
+    padding: 2px 6px;
+    border-radius: var(--radius-sm);
+  }
+
+  .mc-resource-title {
+    font-size: var(--fs-title-sm);
+    font-weight: var(--fw-bold);
+    margin: 0 0 var(--space-3) 0;
+    line-height: var(--lh-title-sm);
+  }
+
+  .mc-resource-link {
+    color: var(--brand-navy, var(--text-primary));
+    text-decoration: none;
+    transition: color 0.15s ease;
+  }
+
+  .mc-resource-link:hover {
+    color: var(--brand-primary);
+  }
+
+  .mc-resource-meta-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-bottom: var(--space-4);
+  }
+
+  .mc-license-tag {
+    font-size: var(--fs-micro);
+    font-weight: var(--fw-medium);
+    color: var(--text-muted);
+    border: 1px solid var(--border-subtle);
+    padding: 1px 6px;
+    border-radius: var(--radius-sm);
+  }
+
+  .mc-pending-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: var(--fs-micro);
+    font-weight: var(--fw-semibold);
+    background: var(--warning-tint);
+    color: var(--warning);
+    border: 1px solid var(--warning-border);
+    padding: 1px 6px;
+    border-radius: var(--radius-sm);
+  }
+
+  .mc-resource-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    font-size: var(--fs-micro);
+    color: var(--text-muted);
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--border-subtle);
+    margin-top: auto;
+  }
+
+  .mc-uploader-info {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .mc-dot {
+    color: var(--border-strong);
+  }
+
+  .mc-used-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: var(--fs-micro);
+    color: var(--success);
+    background: var(--success-tint);
+    border: 1px solid var(--success-border);
+    padding: 2px 8px;
+    border-radius: var(--radius-full);
+  }
+
+  .mc-used-badge svg {
+    color: var(--success);
+  }
+
+  /* Empty Box */
+  .mc-empty-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: var(--space-8) var(--space-4);
+    background: var(--surface);
+    border: 1px dashed var(--border-strong);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-subtle);
+  }
+
+  .mc-empty-icon {
+    color: var(--text-muted);
+    margin-bottom: var(--space-3);
+  }
+
+  .mc-empty-title {
+    font-size: var(--fs-title-sm);
+    font-weight: var(--fw-bold);
+    color: var(--brand-navy);
+    margin: 0 0 var(--space-1) 0;
+  }
+
+  .mc-empty-subtitle {
+    font-size: var(--fs-small);
+    color: var(--text-secondary);
+    margin: 0 0 var(--space-4) 0;
+  }
+
+  .mc-empty-cta {
+    min-height: var(--touch-min);
+  }
+</style>
