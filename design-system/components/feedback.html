@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Malamai Circle - Feedback Banners</title>
+  <link rel="stylesheet" href="../tokens/theme.css">
+  <link rel="stylesheet" href="components.css">
+  <script src="../theme-helper.js"></script>
+</head>
+<body style="padding: var(--space-6); background: var(--surface-bg);">
+
+  <main style="max-width: var(--prose-max); margin: 0 auto; background: var(--surface); padding: var(--space-6); border-radius: var(--radius-lg); border: 1px solid var(--border-subtle);">
+    <h1 style="font-size: var(--fs-h2); line-height: var(--lh-h2); margin-top: 0; color: var(--text-primary);">Feedback Banners</h1>
+    <p style="color: var(--text-muted); font-size: var(--fs-body); margin-bottom: var(--space-6);">
+      Every feedback message uses its tint background, default text color for message content, and its feedback color driving the icon and left border. Status is conveyed through icon + label + text, never color alone.
+    </p>
+
+    <div class="mc-feedback-list" role="region" aria-label="System Notifications">
+
+      <!-- 1. Error Banner -->
+      <aside class="mc-feedback mc-feedback--error" role="alert">
+        <svg class="icon mc-feedback__icon" viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+        <div class="mc-feedback__body">
+          <strong class="mc-feedback__title">Error</strong>
+          <p class="mc-feedback__message">Unable to synchronize attendance records with the state server. Check your network connection and retry.</p>
+        </div>
+      </aside>
+
+      <!-- 2. Warning Banner -->
+      <aside class="mc-feedback mc-feedback--warning" role="alert">
+        <svg class="icon mc-feedback__icon" viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+          <line x1="12" y1="9" x2="12" y2="13"></line>
+          <line x1="12" y1="17" x2="12.01" y2="17"></line>
+        </svg>
+        <div class="mc-feedback__body">
+          <strong class="mc-feedback__title">Warning</strong>
+          <p class="mc-feedback__message">Your annual TRCN certification expires in 14 days. Please submit your renewal application.</p>
+        </div>
+      </aside>
+
+      <!-- 3. Info Banner -->
+      <aside class="mc-feedback mc-feedback--info" role="status">
+        <svg class="icon mc-feedback__icon" viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="16" x2="12" y2="12"></line>
+          <line x1="12" y1="8" x2="12.01" y2="8"></line>
+        </svg>
+        <div class="mc-feedback__body">
+          <strong class="mc-feedback__title">Information</strong>
+          <p class="mc-feedback__message">Curriculum updates for Term 2 Mathematics have been published for primary school educators.</p>
+        </div>
+      </aside>
+
+      <!-- 4. Success Banner -->
+      <aside class="mc-feedback mc-feedback--success" role="status">
+        <svg class="icon mc-feedback__icon" viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+          <polyline points="22 4 12 14.01 9 11.01"></polyline>
+        </svg>
+        <div class="mc-feedback__body">
+          <strong class="mc-feedback__title">Success</strong>
+          <p class="mc-feedback__message">Your lesson plan was reviewed and approved by the Senior Headmaster.</p>
+        </div>
+      </aside>
+
+    </div>
+  </main>
+
+</body>
+</html>

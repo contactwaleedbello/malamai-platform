@@ -1,0 +1,293 @@
+---
+// Admin Screen 2: Approval Queue (PRD Section 7.2 & Rule ADM-04)
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import AdminNav from "../../components/AdminNav.astro";
+import EmptyState from "../../components/EmptyState.astro";
+import ErrorNotice from "../../components/ErrorNotice.astro";
+import { getCurrentUser, getPendingUploads } from "../../lib/data.js";
+
+const user = await getCurrentUser();
+const isStaff = user && (user.role === "Admin" || user.role === "Moderator");
+
+let pendingUploads = [];
+let fetchError = null;
+
+if (isStaff) {
+  try {
+    pendingUploads = await getPendingUploads(user.role);
+  } catch (err) {
+    fetchError = err.message || "Failed to load approval queue.";
+  }
+}
+---
+
+<BaseLayout title="Upload Approvals - Admin">
+  {isStaff ? (
+    <div class="mc-admin-layout">
+      <AdminNav activeTab="approvals" viewerRole={user.role} />
+
+      <header class="mc-page-header">
+        <div class="mc-page-header__content">
+          <h1 class="mc-page-title">Approval Queue (Section 7.2)</h1>
+          <p class="mc-page-desc">
+            Review first-three uploads from new members (Rule ADM-04). After three approved uploads, subsequent teaching materials go live immediately.
+          </p>
+        </div>
+      </header>
+
+      {fetchError && (
+        <ErrorNotice message={fetchError} retryAction={true} />
+      )}
+
+      {pendingUploads.length === 0 ? (
+        <EmptyState 
+          icon="check-circle"
+          message="No pending uploads in the queue. All submitted materials have been reviewed."
+          actionText="View member directory"
+          actionHref="/admin/members"
+        />
+      ) : (
+        <div class="mc-approvals-stack" id="approvals-list-container">
+          {pendingUploads.map((res) => (
+            <article class="mc-approval-card" id={`approval-${res.id}`} data-resource-id={res.id}>
+              <div class="mc-approval-card__header">
+                <div class="mc-approval-badges">
+                  <span class="mc-badge-format">{res.file_size || "PDF"}</span>
+                  <span class="mc-badge-tags">{res.subject} • {res.class_level || res.classLevel}</span>
+                  <span class="mc-badge-pending">Under Review</span>
+                </div>
+                <time class="mc-approval-date">{new Date(res.created_at).toLocaleDateString()}</time>
+              </div>
+
+              <h2 class="mc-approval-title">
+                {res.title}
+              </h2>
+
+              <div class="mc-approval-meta-grid">
+                <div>
+                  <span class="mc-meta-label">Uploader:</span>
+                  <strong>Malam {res.uploader_first_name}</strong>
+                </div>
+                <div>
+                  <span class="mc-meta-label">Source Choice:</span>
+                  <span class="mc-source-choice-tag">{res.source_choice || "I made this"}</span>
+                </div>
+                <div>
+                  <span class="mc-meta-label">Licence:</span>
+                  <span>{res.license || "CC-BY-NC"}</span>
+                </div>
+                {res.credit_line && (
+                  <div style="grid-column: 1 / -1;">
+                    <span class="mc-meta-label">Credit line:</span>
+                    <span>{res.credit_line}</span>
+                  </div>
+                )}
+              </div>
+
+              <div class="mc-approval-footer">
+                <a href={res.file_url || "#"} class="mc-btn mc-btn--secondary mc-btn-sm" target="_blank" rel="noopener">
+                  Preview file
+                </a>
+
+                <div class="mc-approval-actions">
+                  <button 
+                    type="button" 
+                    class="mc-btn mc-btn--secondary mc-btn-sm btn-reject-upload"
+                    data-id={res.id}
+                  >
+                    Reject with reason
+                  </button>
+
+                  <button 
+                    type="button" 
+                    class="mc-btn mc-btn--primary mc-btn-sm btn-approve-upload"
+                    data-id={res.id}
+                  >
+                    Approve upload
+                  </button>
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+      )}
+    </div>
+  ) : (
+    <div class="mc-access-refused">
+      <div class="mc-feedback mc-feedback--error" role="alert">
+        <h2 class="mc-feedback__title">Access Refused (Admin Only)</h2>
+        <p class="mc-feedback__message">
+          You do not have permission to view the Approval Queue. Only Administrators and Moderators may access moderation screens.
+        </p>
+        <a href="/home" class="mc-btn mc-btn--primary" style="margin-top: var(--space-4);">Return to Home</a>
+      </div>
+    </div>
+  )}
+</BaseLayout>
+
+<style>
+  .mc-approvals-stack {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  .mc-approval-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    padding: var(--space-5);
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  }
+
+  .mc-approval-card:hover {
+    box-shadow: var(--shadow-md);
+  }
+
+  .mc-approval-card__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-3);
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .mc-approval-badges {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+  }
+
+  .mc-badge-format {
+    font-size: var(--fs-micro);
+    font-weight: var(--fw-bold);
+    background: var(--surface-bg);
+    border: 1px solid var(--border);
+    padding: 2px 8px;
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+  }
+
+  .mc-badge-tags {
+    font-size: var(--fs-micro);
+    color: var(--text-muted);
+  }
+
+  .mc-badge-pending {
+    font-size: var(--fs-micro);
+    font-weight: var(--fw-bold);
+    background: var(--warning-subtle);
+    color: var(--warning-text);
+    border: 1px solid var(--warning-border);
+    padding: 2px 8px;
+    border-radius: var(--radius-sm);
+  }
+
+  .mc-approval-date {
+    font-size: var(--fs-micro);
+    color: var(--text-muted);
+  }
+
+  .mc-approval-title {
+    font-size: var(--fs-title-sm);
+    font-weight: var(--fw-bold);
+    color: var(--text-primary);
+    margin: 0 0 var(--space-3) 0;
+    line-height: var(--lh-snug);
+  }
+
+  .mc-approval-meta-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--space-2);
+    background: var(--surface-bg);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: var(--space-3);
+    margin-bottom: var(--space-4);
+    font-size: var(--fs-small);
+  }
+
+  .mc-meta-label {
+    color: var(--text-muted);
+    margin-right: 6px;
+    font-size: var(--fs-micro);
+    font-weight: var(--fw-semibold);
+  }
+
+  .mc-source-choice-tag {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 2px 6px;
+    border-radius: var(--radius-sm);
+    font-size: var(--fs-micro);
+    color: var(--text-primary);
+  }
+
+  .mc-approval-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .mc-approval-actions {
+    display: flex;
+    gap: var(--space-2);
+  }
+
+  .mc-btn-sm {
+    min-height: 36px;
+    padding: var(--space-1) var(--space-3);
+    font-size: var(--fs-small);
+  }
+
+  .mc-access-refused {
+    max-width: 600px;
+    margin: var(--space-8) auto;
+  }
+</style>
+
+<script is:inline>
+  document.addEventListener('click', async (e) => {
+    const approveBtn = e.target.closest('.btn-approve-upload');
+    const rejectBtn = e.target.closest('.btn-reject-upload');
+
+    if (!approveBtn && !rejectBtn) return;
+
+    const btn = approveBtn || rejectBtn;
+    const resourceId = btn.getAttribute('data-id');
+
+    btn.disabled = true;
+    btn.textContent = 'Processing...';
+
+    try {
+      const dataModule = await import('/src/lib/data.js');
+
+      if (approveBtn) {
+        await dataModule.approveUpload(resourceId);
+        alert(`Resource ${resourceId} approved and is now live on the shelf.`);
+      } else if (rejectBtn) {
+        const reason = prompt('Enter rejection reason (e.g. Copyright concern, wrong syllabus):', 'Not aligned with curriculum');
+        if (!reason) {
+          btn.disabled = false;
+          btn.textContent = 'Reject with reason';
+          return;
+        }
+        await dataModule.rejectUpload(resourceId, reason);
+        alert(`Resource ${resourceId} rejected.`);
+      }
+
+      window.location.reload();
+    } catch (err) {
+      alert(err.message || 'Action failed.');
+      btn.disabled = false;
+    }
+  });
+</script>

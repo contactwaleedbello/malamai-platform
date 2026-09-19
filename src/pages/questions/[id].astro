@@ -1,0 +1,1079 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import ErrorNotice from "../../components/ErrorNotice.astro";
+import { getQuestions, getQuestionById, getCurrentUser, isReadOnlyMode } from "../../lib/data.js";
+
+export async function getStaticPaths() {
+  const all = await getQuestions();
+  return all.map((q) => ({
+    params: { id: q.id }
+  }));
+}
+
+const { id } = Astro.params;
+
+let question = null;
+let user = null;
+let fetchError = null;
+let readOnlyMode = false;
+
+try {
+  question = await getQuestionById(id);
+  user = await getCurrentUser();
+  readOnlyMode = isReadOnlyMode();
+} catch (e) {
+  fetchError = e.message || "Failed to load question.";
+}
+
+// Check if current user is the author of this question (Rule F1-04)
+const authorFirstName = question ? (question.author_first_name || (question.author && question.author.firstName)) : "";
+const isAsker = Boolean(user && user.role !== "Reader" && (
+  user.first_name === authorFirstName || 
+  user.firstName === authorFirstName ||
+  user.id === question?.authorId
+));
+
+const scienceSubjects = ["basic science", "chemistry", "biology", "physics", "science"];
+const isScience = question && scienceSubjects.some(s => question.subject.toLowerCase().includes(s));
+
+function formatDate(isoStr) {
+  try {
+    const d = new Date(isoStr);
+    return d.toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" });
+  } catch {
+    return "Recent";
+  }
+}
+---
+
+<BaseLayout title={question ? question.title : "Question Thread"} activeNav="questions">
+
+  <!-- Back Link -->
+  <div style="margin-bottom: var(--space-4);">
+    <a href="/boards" class="mc-back-btn">
+      <svg class="icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <line x1="19" y1="12" x2="5" y2="12"></line>
+        <polyline points="12 19 5 12 12 5"></polyline>
+      </svg>
+      <span>Back to question boards</span>
+    </a>
+  </div>
+
+  {fetchError ? (
+    <ErrorNotice message={fetchError} retryAction={true} />
+  ) : question && (
+    <div class="mc-thread-layout" id="thread-view" data-question-id={question.id} data-author-name={authorFirstName} data-is-asker={isAsker ? "true" : "false"}>
+      
+      <!-- MANDATORY NOTICE: Fixed Thread Notice (PRD Section 8.3 & Rule F1-05) -->
+      <div class="mc-thread-disclaimer-card" role="note">
+        <svg class="icon" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="16" x2="12" y2="12"></line>
+          <line x1="12" y1="8" x2="12.01" y2="8"></line>
+        </svg>
+        <strong>Teachers' advice, not official guidance.</strong>
+      </div>
+
+      <!-- SCIENCE SAFETY NOTICE (if science subject, Rule F1-06) -->
+      {isScience && (
+        <div class="mc-safety-notice" role="alert">
+          <svg class="icon mc-safety-notice__icon" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+            <line x1="12" y1="9" x2="12" y2="13"></line>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+          <div>
+            <strong>Science Safety Note:</strong>
+            <span> Safety first. Check any practical activity for your class before you run it. This is teacher advice, not a safety authority.</span>
+          </div>
+        </div>
+      )}
+
+      <!-- MAIN QUESTION CARD -->
+      <article class="mc-question-detail-card" aria-labelledby="question-heading">
+        <div class="mc-question-header">
+          <div class="mc-question-badges">
+            <span class="mc-tag mc-tag--subject">{question.subject}</span>
+            <span class="mc-tag mc-tag--class">{question.class_level || question.classLevel}</span>
+            <span class="mc-tag mc-tag--lang">{question.language}</span>
+          </div>
+
+          <div class="mc-question-actions-group">
+            <!-- Offline Save to Phone button -->
+            <button type="button" class="mc-btn mc-btn--secondary mc-save-phone-btn" id="btn-save-phone" data-item-id={question.id} data-title={question.title}>
+              <svg class="icon" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+              </svg>
+              <span id="save-phone-text">Save to this phone</span>
+            </button>
+
+            <!-- Member Report Trigger (PRD Section 7.1, 8.2 & 15.5) -->
+            <button 
+              type="button" 
+              class="mc-btn mc-btn--secondary mc-report-trigger-btn"
+              data-action="report"
+              data-report-type="question"
+              data-report-id={question.id}
+              data-report-title={question.title}
+              title="Report this question to moderators"
+            >
+              <svg class="icon" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path>
+                <line x1="4" y1="22" x2="4" y2="15"></line>
+              </svg>
+              <span>Report</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Storage Error Alert (PRD Rule F3-03) -->
+        <div id="save-phone-error-alert" class="mc-feedback mc-feedback--warning" style="display: none; margin-bottom: var(--space-3);" role="alert">
+          <svg class="icon mc-feedback__icon" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+          <div class="mc-feedback__body">
+            <strong class="mc-feedback__title">Storage Note</strong>
+            <p class="mc-feedback__message" id="save-phone-error-text">This phone could not save the file. You can still open it online.</p>
+          </div>
+        </div>
+
+        <!-- Hidden JSON for atomic offline caching -->
+        <script type="application/json" id="question-offline-payload" set:html={JSON.stringify({
+          id: question?.id,
+          type: "question",
+          title: question?.title,
+          body: question?.body,
+          subject: question?.subject,
+          class_level: question?.class_level || question?.classLevel,
+          language: question?.language,
+          author_first_name: question?.author_first_name || (question?.author && question.author.firstName),
+          author_state: question?.author_state || (question?.author && question.author.state),
+          created_at: question?.created_at,
+          replies: question?.replies || []
+        })}></script>
+
+        <h1 id="question-heading" class="mc-question-title">
+          {question.title}
+        </h1>
+
+        <div class="mc-question-body">
+          {question.body}
+        </div>
+
+        <!-- Author Attribution (Rule F1-02: first name, state only) -->
+        <div class="mc-question-author-bar">
+          <div class="mc-author-meta">
+            <span>Asked by Malam {question.author_first_name || (question.author && question.author.firstName)}</span>
+            <span class="mc-dot">•</span>
+            <span>{question.author_state || (question.author && question.author.state)} State</span>
+            <span class="mc-dot">•</span>
+            <time datetime={question.created_at}>{formatDate(question.created_at)}</time>
+          </div>
+          {isAsker && (
+            <span class="mc-asker-badge" id="author-asker-badge" title="You are the author of this question">
+              Your Question
+            </span>
+          )}
+        </div>
+      </article>
+
+      <!-- REPLIES SECTION -->
+      <section class="mc-replies-section" aria-labelledby="replies-heading">
+        <div class="mc-replies-header">
+          <h2 id="replies-heading" class="mc-replies-title">
+            Answers &amp; Practical Advice 
+            <span class="mc-replies-count" id="replies-count-badge">({question.replies ? question.replies.length : 0})</span>
+          </h2>
+          <span class="mc-asker-hint" id="author-action-hint" style={isAsker ? "display: block;" : "display: none;"}>
+            As the asker, tap "This helped" on the one solution that worked in your class.
+          </span>
+        </div>
+
+        <!-- Replies List Container -->
+        <div class="mc-replies-list" id="replies-container">
+          {(!question.replies || question.replies.length === 0) ? (
+            <div class="mc-no-replies-card" id="empty-replies-notice">
+              <p>No answers yet. Share what worked in your classroom below.</p>
+            </div>
+          ) : (
+            question.replies.map((reply) => {
+              const isHelped = reply.is_helped || reply.isHelpful;
+              return (
+                <article 
+                  class={`mc-reply-card ${isHelped ? "mc-reply-card--helped" : ""}`} 
+                  id={`reply-${reply.id}`}
+                  data-reply-id={reply.id}
+                >
+                  <!-- Reply Header: Author & Helped Status -->
+                  <div class="mc-reply-header">
+                    <div class="mc-reply-author">
+                      <strong>Malam {reply.author_first_name || (reply.author && reply.author.firstName)}</strong>
+                      <span class="mc-dot">•</span>
+                      <span>{reply.author_state || (reply.author && reply.author.state)} State</span>
+                      <span class="mc-dot">•</span>
+                      <time datetime={reply.created_at}>{formatDate(reply.created_at)}</time>
+                    </div>
+
+                    <div class="mc-reply-header-actions">
+                      <!-- Report Reply Trigger -->
+                      <button 
+                        type="button" 
+                        class="mc-btn mc-btn--secondary mc-btn--sm"
+                        data-action="report"
+                        data-report-type="reply"
+                        data-report-id={reply.id}
+                        data-report-title={`Reply by Malam ${reply.author_first_name || "Teacher"}`}
+                        title="Report this reply"
+                      >
+                        <svg class="icon" viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                          <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path>
+                          <line x1="4" y1="22" x2="4" y2="15"></line>
+                        </svg>
+                        <span>Report</span>
+                      </button>
+
+                      <!-- "This helped" badge -->
+                      {isHelped && (
+                        <span class="mc-helped-pill" id={`helped-badge-${reply.id}`}>
+                          <svg class="icon" viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                          </svg>
+                          <span>This helped the teacher / Wannan ya taimaka</span>
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <!-- Reply Body -->
+                  <div class="mc-reply-body">
+                    {reply.body}
+                  </div>
+
+                  <!-- Interactive "This helped" Toggle Button: Strictly for question author (Rule F1-04) -->
+                  <div class="mc-reply-actions" style={isAsker ? "display: block;" : "display: none;"}>
+                    <button 
+                      type="button" 
+                      class={`mc-btn mc-btn--helped-action ${isHelped ? "is-active" : ""}`}
+                      data-action="toggle-helped"
+                      data-reply-id={reply.id}
+                      aria-pressed={isHelped ? "true" : "false"}
+                    >
+                      <svg class="icon" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                      </svg>
+                      <span class="helped-btn-label">
+                        {isHelped ? "Marked as 'This helped' (Tap to remove)" : "Mark as 'This helped' / Saka 'Wannan ya taimaka'"}
+                      </span>
+                    </button>
+                  </div>
+
+                </article>
+              );
+            })
+          )}
+        </div>
+      </section>
+
+      <!-- REPLY BOX SECTION -->
+      <section class="mc-reply-box-card" aria-labelledby="heading-write-reply">
+        <h3 id="heading-write-reply" class="mc-reply-box-title">
+          Send a reply / Aika amsa
+        </h3>
+        <p class="mc-reply-box-subtitle">
+          Share practical teaching steps, local materials, or classroom-tested ideas.
+        </p>
+
+        <!-- Draft Restored Banner -->
+        <div class="mc-draft-notice" id="reply-draft-notice" style="display: none;">
+          <svg class="icon" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+            <polyline points="17 21 17 13 7 13 7 21"></polyline>
+            <polyline points="7 3 7 8 15 8"></polyline>
+          </svg>
+          <span>Restored your unsent draft text.</span>
+          <button type="button" class="mc-clear-draft-btn" id="btn-clear-reply-draft">Discard draft</button>
+        </div>
+
+        <!-- Network Drop / Error State (PRD Error State) -->
+        <div class="mc-drop-alert" id="reply-error-alert" style="display: none;" role="alert">
+          <svg class="icon" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          <div class="mc-drop-alert__text">
+            <strong>That did not send. We kept your text.</strong>
+            <span>Tap Retry when your connection returns.</span>
+          </div>
+          <button type="button" class="mc-btn mc-btn--primary mc-btn--sm" id="btn-reply-retry">
+            Retry
+          </button>
+        </div>
+
+        {readOnlyMode ? (
+          <div class="mc-feedback mc-feedback--warning" style="margin-top: var(--space-3);" role="alert">
+            <p class="mc-feedback__message">Malamai Circle is currently in read-only mode. New replies cannot be submitted.</p>
+          </div>
+        ) : (
+          <form id="reply-form" class="mc-reply-form">
+            <div class="mc-form-group">
+              <label for="reply-body" class="mc-label">
+                <span>Your Answer</span>
+                <span class="mc-label__required">*</span>
+              </label>
+              <textarea 
+                id="reply-body" 
+                name="body" 
+                class="mc-textarea" 
+                rows="4" 
+                placeholder="Write your explanation or classroom tip here (Hausa or English)..."
+                required
+                minlength="10"
+                maxlength="1000"
+              ></textarea>
+              
+              <div class="mc-textarea-footer">
+                <span class="mc-char-count" id="reply-char-counter">0 / 1000 characters (min 10)</span>
+                <span class="mc-draft-saved-tag" id="reply-draft-saved-indicator">Auto-saved to phone</span>
+              </div>
+            </div>
+
+            <button type="submit" class="mc-btn mc-btn--primary mc-send-btn" id="btn-submit-reply">
+              <svg class="icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <line x1="22" y1="2" x2="11" y2="13"></line>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+              </svg>
+              <span id="reply-btn-label">Send reply / Aika amsa</span>
+            </button>
+          </form>
+        )}
+      </section>
+
+    </div>
+  )}
+
+</BaseLayout>
+
+<script>
+  import { createReply, markReplyHelped, getCurrentUser } from "../../lib/data.js";
+  import { saveItemToPhone, isItemSaved } from "../../lib/offlineStore.js";
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    const threadView = document.getElementById('thread-view');
+    if (!threadView) return;
+
+    const questionId = threadView.getAttribute('data-question-id');
+    const authorName = threadView.getAttribute('data-author-name') || '';
+    const draftKey = `malamai_draft_reply_${questionId}`;
+
+    // Dynamic Asker Validation from active browser session
+    let isAsker = threadView.getAttribute('data-is-asker') === 'true';
+    try {
+      const activeUser = await getCurrentUser();
+      if (activeUser && activeUser.role !== 'Reader') {
+        const userFirstName = activeUser.first_name || activeUser.firstName;
+        if (userFirstName && userFirstName.toLowerCase() === authorName.toLowerCase()) {
+          isAsker = true;
+          threadView.setAttribute('data-is-asker', 'true');
+          const authorHint = document.getElementById('author-action-hint');
+          if (authorHint) authorHint.style.display = 'block';
+          const askerBadge = document.getElementById('author-asker-badge');
+          if (askerBadge) askerBadge.style.display = 'inline-block';
+          document.querySelectorAll('.mc-reply-actions').forEach(el => {
+            (el as HTMLElement).style.display = 'block';
+          });
+        }
+      }
+    } catch {}
+
+    const textarea = document.getElementById('reply-body') as HTMLTextAreaElement | null;
+    const charCounter = document.getElementById('reply-char-counter');
+    const draftIndicator = document.getElementById('reply-draft-saved-indicator');
+    const draftNotice = document.getElementById('reply-draft-notice');
+    const clearDraftBtn = document.getElementById('btn-clear-reply-draft');
+    const errorAlert = document.getElementById('reply-error-alert');
+    const retryBtn = document.getElementById('btn-reply-retry');
+    const replyForm = document.getElementById('reply-form');
+    const submitBtn = document.getElementById('btn-submit-reply') as HTMLButtonElement | null;
+    const replyBtnLabel = document.getElementById('reply-btn-label');
+    const repliesContainer = document.getElementById('replies-container');
+    const emptyNotice = document.getElementById('empty-replies-notice');
+    const repliesCountBadge = document.getElementById('replies-count-badge');
+    const savePhoneBtn = document.getElementById('btn-save-phone');
+    const savePhoneText = document.getElementById('save-phone-text');
+
+    // 1. Restore draft on load
+    try {
+      const savedDraft = localStorage.getItem(draftKey);
+      if (savedDraft && savedDraft.trim().length > 0 && textarea) {
+        textarea.value = savedDraft;
+        if (draftNotice) draftNotice.style.display = 'flex';
+        updateCharCount();
+      }
+    } catch (e) {
+      console.warn("Storage draft read error", e);
+    }
+
+    // 2. Clear draft button
+    clearDraftBtn?.addEventListener('click', () => {
+      try {
+        localStorage.removeItem(draftKey);
+      } catch {}
+      if (textarea) textarea.value = '';
+      if (draftNotice) draftNotice.style.display = 'none';
+      updateCharCount();
+    });
+
+    // 3. Textarea input & Autosave
+    function updateCharCount() {
+      if (!textarea || !charCounter) return;
+      const len = textarea.value.length;
+      charCounter.textContent = `${len} / 1000 characters (min 10)`;
+      if (len < 10) {
+        charCounter.style.color = 'var(--text-muted)';
+      } else if (len > 950) {
+        charCounter.style.color = 'var(--warning)';
+      } else {
+        charCounter.style.color = 'var(--text-muted)';
+      }
+    }
+
+    let saveTimeout: any;
+    textarea?.addEventListener('input', () => {
+      updateCharCount();
+      clearTimeout(saveTimeout);
+      saveTimeout = setTimeout(() => {
+        try {
+          localStorage.setItem(draftKey, textarea.value);
+          if (draftIndicator) {
+            draftIndicator.textContent = "Saved to phone";
+            setTimeout(() => {
+              if (draftIndicator) draftIndicator.textContent = "Auto-saved to phone";
+            }, 1500);
+          }
+        } catch {}
+      }, 250);
+    });
+
+    // 4. Submit Reply Handler
+    async function handleSendReply() {
+      if (!textarea) return;
+      const text = textarea.value.trim();
+      if (text.length < 10) {
+        alert("Please write at least 10 characters before sending your reply.");
+        textarea.focus();
+        return;
+      }
+
+      if (errorAlert) errorAlert.style.display = 'none';
+      if (submitBtn) submitBtn.disabled = true;
+      if (replyBtnLabel) replyBtnLabel.textContent = "Sending...";
+
+      try {
+        const newReply = await createReply({
+          question_id: questionId,
+          body: text
+        });
+
+        // Success: Clear draft
+        try {
+          localStorage.removeItem(draftKey);
+        } catch {}
+        if (draftNotice) draftNotice.style.display = 'none';
+        textarea.value = '';
+        updateCharCount();
+
+        // Dynamically append new reply card
+        if (emptyNotice) emptyNotice.style.display = 'none';
+        const card = document.createElement('article');
+        card.className = 'mc-reply-card';
+        card.id = `reply-${newReply.id}`;
+        card.setAttribute('data-reply-id', newReply.id);
+
+        card.innerHTML = `
+          <div class="mc-reply-header">
+            <div class="mc-reply-author">
+              <strong>Malam ${newReply.author_first_name}</strong>
+              <span class="mc-dot">•</span>
+              <span>${newReply.author_state} State</span>
+              <span class="mc-dot">•</span>
+              <time>Just now</time>
+            </div>
+            <div class="mc-reply-header-actions">
+              <button 
+                type="button" 
+                class="mc-btn mc-btn--secondary mc-btn--sm"
+                data-action="report"
+                data-report-type="reply"
+                data-report-id="${newReply.id}"
+                data-report-title="Reply by Malam ${newReply.author_first_name}"
+                title="Report this reply"
+              >
+                <svg class="icon" viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path>
+                  <line x1="4" y1="22" x2="4" y2="15"></line>
+                </svg>
+                <span>Report</span>
+              </button>
+            </div>
+          </div>
+          <div class="mc-reply-body">${escapeHtml(newReply.body)}</div>
+          <div class="mc-reply-actions" style="${isAsker ? 'display: block;' : 'display: none;'}">
+            <button 
+              type="button" 
+              class="mc-btn mc-btn--helped-action"
+              data-action="toggle-helped"
+              data-reply-id="${newReply.id}"
+              aria-pressed="false"
+            >
+              <svg class="icon" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              <span class="helped-btn-label">Mark as 'This helped' / Saka 'Wannan ya taimaka'</span>
+            </button>
+          </div>
+        `;
+
+        repliesContainer?.appendChild(card);
+
+        // Update replies count in header
+        if (repliesCountBadge) {
+          const currentMatches = repliesCountBadge.textContent?.match(/\d+/);
+          const currentCount = currentMatches ? parseInt(currentMatches[0], 10) : 0;
+          repliesCountBadge.textContent = `(${currentCount + 1})`;
+        }
+
+        // Attach listener to newly created helped button if author
+        if (isAsker) {
+          const newBtn = card.querySelector('[data-action="toggle-helped"]');
+          newBtn?.addEventListener('click', () => handleToggleHelped(newReply.id));
+        }
+
+        card.scrollIntoView({ behavior: 'smooth' });
+
+      } catch (err) {
+        if (errorAlert) errorAlert.style.display = 'flex';
+      } finally {
+        if (submitBtn) submitBtn.disabled = false;
+        if (replyBtnLabel) replyBtnLabel.textContent = "Send reply / Aika amsa";
+      }
+    }
+
+    replyForm?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      handleSendReply();
+    });
+
+    retryBtn?.addEventListener('click', () => {
+      handleSendReply();
+    });
+
+    // 5. 'This helped' Single Selection Handler (Rule F1-04)
+    async function handleToggleHelped(replyId: string) {
+      if (!isAsker) return;
+      try {
+        const result = await markReplyHelped(questionId, replyId);
+        const helpedReplyId = result.question.helped_reply_id;
+
+        // Update all reply cards on screen
+        const allReplyCards = document.querySelectorAll('.mc-reply-card');
+        allReplyCards.forEach((card) => {
+          const rId = card.getAttribute('data-reply-id');
+          const isThisOneHelped = (rId === helpedReplyId);
+
+          if (isThisOneHelped) {
+            card.classList.add('mc-reply-card--helped');
+          } else {
+            card.classList.remove('mc-reply-card--helped');
+          }
+
+          let pill = card.querySelector('.mc-helped-pill');
+          if (isThisOneHelped) {
+            if (!pill) {
+              pill = document.createElement('span');
+              pill.className = 'mc-helped-pill';
+              pill.innerHTML = `
+                <svg class="icon" viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                <span>This helped the teacher / Wannan ya taimaka</span>
+              `;
+              card.querySelector('.mc-reply-header-actions')?.prepend(pill);
+            }
+          } else {
+            pill?.remove();
+          }
+
+          const btn = card.querySelector('[data-action="toggle-helped"]');
+          if (btn) {
+            btn.setAttribute('aria-pressed', isThisOneHelped ? 'true' : 'false');
+            if (isThisOneHelped) {
+              btn.classList.add('is-active');
+              const label = btn.querySelector('.helped-btn-label');
+              if (label) label.textContent = "Marked as 'This helped' (Tap to remove)";
+            } else {
+              btn.classList.remove('is-active');
+              const label = btn.querySelector('.helped-btn-label');
+              if (label) label.textContent = "Mark as 'This helped' / Saka 'Wannan ya taimaka'";
+            }
+          }
+        });
+      } catch (err) {
+        alert("Failed to update status. Please try again.");
+      }
+    }
+
+    document.querySelectorAll('[data-action="toggle-helped"]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const rId = btn.getAttribute('data-reply-id');
+        if (rId) handleToggleHelped(rId);
+      });
+    });
+
+    // 6. Offline Save to Phone (PRD Section 5.3)
+    if (isItemSaved(questionId)) {
+      if (savePhoneBtn) {
+        savePhoneBtn.classList.add('is-saved');
+        savePhoneBtn.setAttribute('disabled', 'true');
+      }
+      if (savePhoneText) savePhoneText.textContent = "Saved to phone ✓";
+    }
+
+    savePhoneBtn?.addEventListener('click', () => {
+      const payloadEl = document.getElementById('question-offline-payload');
+      const errBanner = document.getElementById('save-phone-error-alert');
+      const errText = document.getElementById('save-phone-error-text');
+
+      if (!payloadEl) return;
+      try {
+        const payloadData = JSON.parse(payloadEl.textContent || '{}');
+        const saveRes = saveItemToPhone(payloadData);
+
+        if (saveRes.success) {
+          if (errBanner) errBanner.style.display = 'none';
+          savePhoneBtn.classList.add('is-saved');
+          savePhoneBtn.setAttribute('disabled', 'true');
+          if (savePhoneText) savePhoneText.textContent = "Saved to phone ✓";
+        } else {
+          if (errBanner && errText) {
+            errText.textContent = saveRes.error || "This phone could not save the file. You can still open it online.";
+            errBanner.style.display = 'flex';
+          }
+        }
+      } catch (e: any) {
+        if (errBanner && errText) {
+          errText.textContent = "This phone could not save the file. You can still open it online.";
+          errBanner.style.display = 'flex';
+        }
+      }
+    });
+
+    function escapeHtml(str: string) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+  });
+</script>
+
+<style>
+  .mc-back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    color: var(--brand-primary);
+    text-decoration: none;
+    font-size: var(--fs-small);
+    font-weight: var(--fw-semibold);
+    transition: color 0.15s ease;
+  }
+
+  .mc-back-btn:hover {
+    color: var(--brand-primary-hover);
+    text-decoration: underline;
+  }
+
+  .mc-thread-layout {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  /* Fixed Thread Disclaimer Notice (PRD Rule F1-05 & Section 8.3) */
+  .mc-thread-disclaimer-card {
+    background: var(--surface-subtle);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: var(--space-2) var(--space-4);
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    color: var(--text-secondary);
+    font-size: var(--fs-small);
+  }
+
+  .mc-thread-disclaimer-card svg {
+    color: var(--brand-primary);
+    flex-shrink: 0;
+  }
+
+  /* Fixed Science Notice (PRD Rule F1-06) */
+  .mc-safety-notice {
+    background: var(--warning-tint);
+    border: 1px solid var(--warning-border);
+    border-left: 5px solid var(--warning);
+    border-radius: var(--radius-md);
+    padding: var(--space-3) var(--space-4);
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+    color: var(--navy-950);
+    font-size: var(--fs-small);
+    line-height: var(--lh-small);
+    box-shadow: var(--shadow-subtle);
+  }
+
+  .mc-safety-notice__icon {
+    color: var(--warning);
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  /* Question Detail Card */
+  .mc-question-detail-card {
+    background: var(--surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: var(--space-6) var(--space-5);
+    box-shadow: var(--shadow-card);
+  }
+
+  .mc-question-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+  }
+
+  .mc-question-badges {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .mc-question-actions-group {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+  }
+
+  .mc-save-phone-btn.is-saved {
+    background: var(--success-tint);
+    color: var(--success);
+    border-color: var(--success-border);
+  }
+
+  .mc-tag {
+    font-size: var(--fs-micro);
+    font-weight: var(--fw-semibold);
+    padding: 3px 10px;
+    border-radius: var(--radius-full);
+  }
+
+  .mc-tag--subject {
+    background: var(--brand-primary-tint);
+    color: var(--brand-primary);
+    border: 1px solid var(--border-subtle);
+  }
+
+  .mc-tag--class {
+    background: var(--surface-subtle);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-subtle);
+  }
+
+  .mc-tag--lang {
+    background: var(--surface-subtle);
+    color: var(--text-muted);
+    border: 1px solid var(--border-subtle);
+  }
+
+  .mc-question-title {
+    font-size: var(--fs-h2);
+    font-weight: var(--fw-bold);
+    color: var(--brand-navy);
+    margin: 0 0 var(--space-4) 0;
+    line-height: var(--lh-h2);
+  }
+
+  .mc-question-body {
+    font-size: var(--fs-body-lg);
+    line-height: var(--lh-body-lg);
+    color: var(--text-primary);
+    margin: 0 0 var(--space-5) 0;
+    white-space: pre-line;
+  }
+
+  .mc-question-author-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--border-subtle);
+    font-size: var(--fs-small);
+    color: var(--text-muted);
+  }
+
+  .mc-author-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .mc-dot {
+    color: var(--border-strong);
+  }
+
+  .mc-asker-badge {
+    background: var(--brand-primary-tint);
+    color: var(--brand-primary);
+    border: 1px solid var(--border-subtle);
+    font-size: var(--fs-micro);
+    font-weight: var(--fw-bold);
+    padding: 2px 8px;
+    border-radius: var(--radius-full);
+  }
+
+  /* Replies Section */
+  .mc-replies-section {
+    margin-top: var(--space-2);
+  }
+
+  .mc-replies-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-bottom: var(--space-3);
+  }
+
+  .mc-replies-title {
+    font-size: var(--fs-title-sm);
+    font-weight: var(--fw-bold);
+    color: var(--brand-navy);
+    margin: 0;
+  }
+
+  .mc-replies-count {
+    color: var(--text-muted);
+    font-weight: var(--fw-medium);
+  }
+
+  .mc-asker-hint {
+    font-size: var(--fs-small);
+    color: var(--brand-primary);
+    font-weight: var(--fw-medium);
+  }
+
+  .mc-replies-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .mc-no-replies-card {
+    background: var(--surface);
+    border: 1px dashed var(--border-strong);
+    border-radius: var(--radius-md);
+    padding: var(--space-6);
+    text-align: center;
+    color: var(--text-muted);
+    font-size: var(--fs-body);
+  }
+
+  /* Reply Card */
+  .mc-reply-card {
+    background: var(--surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+    box-shadow: var(--shadow-card);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .mc-reply-card--helped {
+    border: 2px solid var(--success);
+    background: var(--surface);
+    box-shadow: 0 2px 8px rgba(5, 150, 105, 0.08);
+  }
+
+  .mc-reply-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-bottom: var(--space-3);
+  }
+
+  .mc-reply-author {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: var(--fs-small);
+    color: var(--text-secondary);
+    flex-wrap: wrap;
+  }
+
+  .mc-reply-author strong {
+    color: var(--brand-navy);
+  }
+
+  .mc-reply-header-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+  }
+
+  .mc-helped-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: var(--fs-micro);
+    font-weight: var(--fw-bold);
+    background: var(--success-tint);
+    color: var(--success);
+    border: 1px solid var(--success-border);
+    padding: 3px 10px;
+    border-radius: var(--radius-full);
+  }
+
+  .mc-reply-body {
+    font-size: var(--fs-body);
+    line-height: var(--lh-body);
+    color: var(--text-primary);
+    margin-bottom: var(--space-3);
+    white-space: pre-line;
+  }
+
+  .mc-reply-actions {
+    padding-top: var(--space-2);
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .mc-btn--helped-action {
+    background: var(--surface-subtle);
+    border-color: var(--border-strong);
+    color: var(--text-secondary);
+    font-size: var(--fs-micro);
+    min-height: 36px;
+  }
+
+  .mc-btn--helped-action:hover {
+    border-color: var(--success);
+    color: var(--success);
+    background: var(--success-tint);
+  }
+
+  .mc-btn--helped-action.is-active {
+    background: var(--success);
+    color: #fff;
+    border-color: var(--success);
+  }
+
+  /* Reply Box Card */
+  .mc-reply-box-card {
+    background: var(--surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: var(--space-5);
+    margin-top: var(--space-4);
+    box-shadow: var(--shadow-card);
+  }
+
+  .mc-reply-box-title {
+    font-size: var(--fs-title-sm);
+    font-weight: var(--fw-bold);
+    color: var(--brand-navy);
+    margin: 0 0 2px 0;
+  }
+
+  .mc-reply-box-subtitle {
+    font-size: var(--fs-small);
+    color: var(--text-secondary);
+    margin: 0 0 var(--space-4) 0;
+  }
+
+  .mc-textarea-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: var(--fs-micro);
+    color: var(--text-muted);
+    margin-top: var(--space-1);
+  }
+
+  .mc-draft-saved-tag {
+    color: var(--text-muted);
+  }
+
+  .mc-draft-notice {
+    background: var(--brand-primary-tint);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: var(--space-2) var(--space-3);
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: var(--fs-small);
+    color: var(--brand-primary);
+    margin-bottom: var(--space-3);
+  }
+
+  .mc-clear-draft-btn {
+    margin-left: auto;
+    background: transparent;
+    border: none;
+    color: var(--danger);
+    font-size: var(--fs-micro);
+    font-weight: var(--fw-semibold);
+    cursor: pointer;
+    text-decoration: underline;
+  }
+
+  .mc-drop-alert {
+    background: var(--warning-tint);
+    border: 1px solid var(--warning-border);
+    border-left: 4px solid var(--warning);
+    border-radius: var(--radius-md);
+    padding: var(--space-3);
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin-bottom: var(--space-3);
+  }
+
+  .mc-drop-alert svg {
+    color: var(--warning);
+    flex-shrink: 0;
+  }
+
+  .mc-drop-alert__text {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    font-size: var(--fs-small);
+    color: var(--navy-950);
+  }
+
+  .mc-send-btn {
+    min-height: var(--touch-min);
+  }
+</style>

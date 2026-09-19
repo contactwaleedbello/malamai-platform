@@ -1,0 +1,735 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { getCurrentUser, isReadOnlyMode } from "../lib/data.js";
+
+const url = new URL(Astro.request.url);
+const initialSubject = url.searchParams.get("subject") || "";
+const initialClass = url.searchParams.get("class") || "";
+
+let user = null;
+try {
+  user = await getCurrentUser();
+} catch (e) {
+  user = null;
+}
+
+const isReader = !user || user.role === "Reader";
+const readOnly = isReadOnlyMode();
+
+const subjects = [
+  "Mathematics",
+  "Basic Science",
+  "English Language",
+  "Hausa",
+  "Social Studies",
+  "Agricultural Science",
+  "Basic Technology",
+  "Chemistry",
+  "Biology",
+  "Physics"
+];
+
+const classLevels = [
+  "Primary 1", "Primary 2", "Primary 3", "Primary 4", "Primary 5", "Primary 6",
+  "JSS 1", "JSS 2", "JSS 3",
+  "SS 1", "SS 2", "SS 3"
+];
+---
+
+<BaseLayout title="Ask a Question / Yi Tambaya" activeNav="questions">
+
+  <!-- Back Link -->
+  <div style="margin-bottom: var(--space-4);">
+    <a href="/boards" class="mc-back-btn">
+      <svg class="icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <line x1="19" y1="12" x2="5" y2="12"></line>
+        <polyline points="12 19 5 12 12 5"></polyline>
+      </svg>
+      <span>Back to question boards</span>
+    </a>
+  </div>
+
+  <div class="mc-ask-container">
+    
+    <!-- Header -->
+    <header class="mc-ask-header">
+      <h1 class="mc-ask-title">Ask a Question / Yi Tambaya</h1>
+      <p class="mc-ask-subtitle">
+        Ask fellow teachers in your subject for classroom advice, syllabus guidance, or low-cost practical alternatives.
+      </p>
+    </header>
+
+    <!-- Read-Only Mode Gate (Rule ADM-09) -->
+    {readOnly ? (
+      <div class="mc-feedback mc-feedback--warning" style="margin-bottom: var(--space-6);" role="alert">
+        <h2 class="mc-feedback__title">Malamai Circle is currently in read-only mode.</h2>
+        <p class="mc-feedback__message">
+          Posting new questions is temporarily paused. You can still browse and read all existing questions.
+        </p>
+        <a href="/boards" class="mc-btn mc-btn--secondary" style="margin-top: var(--space-3);">Browse Question Boards</a>
+      </div>
+    ) : isReader ? (
+      <div class="mc-reader-gate-card">
+        <div class="mc-reader-gate-icon-box">
+          <svg class="icon" viewBox="0 0 24 24" width="28" height="28" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+        </div>
+        <div>
+          <h2 class="mc-reader-gate-title">Join to ask questions</h2>
+          <p class="mc-reader-gate-desc">
+            Anyone can read questions and solutions freely. To post a question and receive answers from colleagues, join with a simple username and 6-digit PIN. No email required.
+          </p>
+          <a href="/join" class="mc-btn mc-btn--primary" style="display: inline-flex; align-items: center; gap: 8px;">
+            <span>Join as a teacher</span>
+            <svg class="icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+              <polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
+          </a>
+        </div>
+      </div>
+    ) : (
+      <div>
+        
+        <!-- Draft Restored Banner -->
+        <div class="mc-draft-banner" id="ask-draft-banner" style="display: none;" role="status">
+          <svg class="icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+            <polyline points="17 21 17 13 7 13 7 21"></polyline>
+            <polyline points="7 3 7 8 15 8"></polyline>
+          </svg>
+          <div class="mc-draft-banner__content">
+            <strong>Restored your unsent draft question.</strong>
+            <span>Saved on this phone so your work is never lost.</span>
+          </div>
+          <button type="button" class="mc-btn-discard-draft" id="btn-discard-ask-draft">
+            Discard draft
+          </button>
+        </div>
+
+        <!-- Network Drop / Error Alert (PRD Error state) -->
+        <div class="mc-drop-alert" id="ask-error-alert" style="display: none;" role="alert">
+          <svg class="icon" viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          <div class="mc-drop-alert__text">
+            <strong>That did not send. We kept your text.</strong>
+            <span>Tap Retry when your cellular connection returns.</span>
+          </div>
+          <button type="button" class="mc-btn mc-btn--primary mc-drop-retry-btn" id="btn-ask-retry">
+            Retry
+          </button>
+        </div>
+
+        <!-- Privacy Reminder Card -->
+        <div class="mc-privacy-card">
+          <svg class="icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+          </svg>
+          <span><strong>Reminder:</strong> Do not include pupil names, pupil photos, phone numbers, or private student information.</span>
+        </div>
+
+        <!-- Question Form Card -->
+        <form id="ask-form" class="mc-ask-form-card" novalidate>
+
+          <!-- Title Field -->
+          <div class="mc-form-group">
+            <label for="ask-title" class="mc-label">
+              <span>Question Summary</span>
+              <span class="mc-label__required">*</span>
+            </label>
+            <input 
+              type="text" 
+              id="ask-title" 
+              name="title" 
+              class="mc-input" 
+              placeholder="e.g. Teaching ratio to JSS 2 with no textbooks" 
+              required 
+              minlength="10" 
+              maxlength="120"
+              autocomplete="off"
+            />
+            <div class="mc-input-meta">
+              <span class="mc-char-counter" id="title-counter">0 / 120 (min 10)</span>
+              <span class="mc-field-error" id="title-error" style="display: none;">Please write at least 10 characters for your title.</span>
+            </div>
+          </div>
+
+          <!-- Subject and Class Level Grid -->
+          <div class="mc-grid-2">
+            
+            <!-- Subject Dropdown -->
+            <div class="mc-form-group">
+              <label for="ask-subject" class="mc-label">
+                <span>Subject</span>
+                <span class="mc-label__required">*</span>
+              </label>
+              <div class="mc-select-wrapper">
+                <select id="ask-subject" name="subject" class="mc-select" required>
+                  <option value="">Select subject...</option>
+                  {subjects.map((sub) => (
+                    <option value={sub} selected={sub.toLowerCase() === initialSubject.toLowerCase()}>{sub}</option>
+                  ))}
+                </select>
+                <svg class="icon mc-select-icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              </div>
+              <span class="mc-field-error" id="subject-error" style="display: none;">Please select a subject.</span>
+            </div>
+
+            <!-- Class Level Dropdown -->
+            <div class="mc-form-group">
+              <label for="ask-class" class="mc-label">
+                <span>Class Level</span>
+                <span class="mc-label__required">*</span>
+              </label>
+              <div class="mc-select-wrapper">
+                <select id="ask-class" name="class_level" class="mc-select" required>
+                  <option value="">Select class...</option>
+                  {classLevels.map((lvl) => (
+                    <option value={lvl} selected={lvl.toLowerCase() === initialClass.toLowerCase()}>{lvl}</option>
+                  ))}
+                </select>
+                <svg class="icon mc-select-icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              </div>
+              <span class="mc-field-error" id="class-error" style="display: none;">Please select a class level.</span>
+            </div>
+
+          </div>
+
+          <!-- Language Picker -->
+          <div class="mc-form-group">
+            <label class="mc-label">
+              <span>Language of question</span>
+              <span class="mc-label__required">*</span>
+            </label>
+            <div class="mc-lang-radios">
+              <label class="mc-lang-pill-radio">
+                <input type="radio" name="language" value="English" checked />
+                <span>English Language</span>
+              </label>
+              <label class="mc-lang-pill-radio">
+                <input type="radio" name="language" value="Hausa" />
+                <span>Harshen Hausa</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Body Field -->
+          <div class="mc-form-group">
+            <label for="ask-body" class="mc-label">
+              <span>What is your question? Provide classroom context</span>
+              <span class="mc-label__required">*</span>
+            </label>
+            <textarea 
+              id="ask-body" 
+              name="body" 
+              class="mc-textarea" 
+              rows="6" 
+              placeholder="Describe your classroom situation, what you have already tried, or what specific local materials you need advice on..." 
+              required 
+              minlength="20" 
+              maxlength="1000"
+            ></textarea>
+            
+            <div class="mc-input-meta">
+              <span class="mc-char-counter" id="body-counter">0 / 1000 (min 20)</span>
+              <span class="mc-autosave-indicator" id="ask-autosave-tag">Auto-saved to phone</span>
+            </div>
+            <span class="mc-field-error" id="body-error" style="display: none;">Please provide at least 20 characters of detail.</span>
+
+            <!-- Soft Phone Number Detector Alert (PRD Spec) -->
+            <div class="mc-phone-warning" id="phone-number-warning" style="display: none;" role="alert">
+              <svg class="icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                <line x1="12" y1="9" x2="12" y2="13"></line>
+                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+              </svg>
+              <span>This looks like a phone number. For safety, phone numbers are not allowed.</span>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="mc-form-actions">
+            <a href="/boards" class="mc-btn mc-btn--secondary">
+              Cancel
+            </a>
+            <button type="submit" class="mc-btn mc-btn--primary" id="btn-submit-question">
+              <svg class="icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+              <span id="submit-btn-label">Post question / Tura tambaya</span>
+            </button>
+          </div>
+
+        </form>
+
+      </div>
+    )}
+
+  </div>
+
+</BaseLayout>
+
+<script>
+  import { createQuestion } from "../lib/data.js";
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const draftKey = "malamai_draft_ask_question";
+
+    const form = document.getElementById('ask-form') as HTMLFormElement | null;
+    if (!form) return;
+
+    const titleInput = document.getElementById('ask-title') as HTMLInputElement | null;
+    const subjectSelect = document.getElementById('ask-subject') as HTMLSelectElement | null;
+    const classSelect = document.getElementById('ask-class') as HTMLSelectElement | null;
+    const bodyInput = document.getElementById('ask-body') as HTMLTextAreaElement | null;
+    const titleCounter = document.getElementById('title-counter');
+    const bodyCounter = document.getElementById('body-counter');
+    const autosaveTag = document.getElementById('ask-autosave-tag');
+    const draftBanner = document.getElementById('ask-draft-banner');
+    const discardBtn = document.getElementById('btn-discard-ask-draft');
+    const phoneWarning = document.getElementById('phone-number-warning');
+    const errorAlert = document.getElementById('ask-error-alert');
+    const retryBtn = document.getElementById('btn-ask-retry');
+    const submitBtn = document.getElementById('btn-submit-question') as HTMLButtonElement | null;
+    const submitLabel = document.getElementById('submit-btn-label');
+
+    const titleError = document.getElementById('title-error');
+    const subjectError = document.getElementById('subject-error');
+    const classError = document.getElementById('class-error');
+    const bodyError = document.getElementById('body-error');
+
+    // 0. Pre-fill from URL Query Params if not already set (Empty Shelf Binding Fix)
+    const urlParams = new URLSearchParams(window.location.search);
+    const querySub = urlParams.get('subject');
+    const queryClass = urlParams.get('class');
+    if (querySub && subjectSelect && !subjectSelect.value) {
+      for (let i = 0; i < subjectSelect.options.length; i++) {
+        if (subjectSelect.options[i].value.toLowerCase() === querySub.toLowerCase()) {
+          subjectSelect.selectedIndex = i;
+          break;
+        }
+      }
+    }
+    if (queryClass && classSelect && !classSelect.value) {
+      for (let i = 0; i < classSelect.options.length; i++) {
+        if (classSelect.options[i].value.toLowerCase() === queryClass.toLowerCase()) {
+          classSelect.selectedIndex = i;
+          break;
+        }
+      }
+    }
+
+    // 1. Restore draft
+    try {
+      const saved = localStorage.getItem(draftKey);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.title && titleInput) titleInput.value = parsed.title;
+        if (parsed.subject && subjectSelect && !querySub) subjectSelect.value = parsed.subject;
+        if (parsed.classLevel && classSelect && !queryClass) classSelect.value = parsed.classLevel;
+        if (parsed.body && bodyInput) bodyInput.value = parsed.body;
+        if (parsed.language) {
+          const radio = form.querySelector(`input[name="language"][value="${parsed.language}"]`) as HTMLInputElement | null;
+          if (radio) radio.checked = true;
+        }
+        if (parsed.title || parsed.body) {
+          if (draftBanner) draftBanner.style.display = 'flex';
+        }
+      }
+    } catch {}
+
+    updateCounts();
+
+    // 2. Discard draft button
+    discardBtn?.addEventListener('click', () => {
+      try {
+        localStorage.removeItem(draftKey);
+      } catch {}
+      if (titleInput) titleInput.value = '';
+      if (bodyInput) bodyInput.value = '';
+      if (draftBanner) draftBanner.style.display = 'none';
+      updateCounts();
+    });
+
+    // 3. Counter & Phone Detector
+    function updateCounts() {
+      const titleLen = titleInput?.value.length || 0;
+      if (titleCounter) titleCounter.textContent = `${titleLen} / 120 (min 10)`;
+
+      const bodyVal = bodyInput?.value || '';
+      const bodyLen = bodyVal.length;
+      if (bodyCounter) bodyCounter.textContent = `${bodyLen} / 1000 (min 20)`;
+
+      // Soft Warning: Detect 7+ consecutive digit runs (Phone number detector)
+      const hasPhoneDigits = /\b\d{7,14}\b|\b0[789][01]\d{8}\b/.test(bodyVal.replace(/[\s-]/g, '')) || /\b\d{7,}\b/.test(titleInput?.value || '');
+      if (phoneWarning) {
+        phoneWarning.style.display = hasPhoneDigits ? 'flex' : 'none';
+      }
+    }
+
+    let saveTimer: any;
+    function triggerAutosave() {
+      updateCounts();
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(() => {
+        try {
+          const selectedLang = (form.querySelector('input[name="language"]:checked') as HTMLInputElement)?.value || 'English';
+          const draftData = {
+            title: titleInput?.value || '',
+            subject: subjectSelect?.value || '',
+            classLevel: classSelect?.value || '',
+            language: selectedLang,
+            body: bodyInput?.value || ''
+          };
+          localStorage.setItem(draftKey, JSON.stringify(draftData));
+          if (autosaveTag) {
+            autosaveTag.textContent = "Saved to phone";
+            setTimeout(() => {
+              if (autosaveTag) autosaveTag.textContent = "Auto-saved to phone";
+            }, 1500);
+          }
+        } catch {}
+      }, 300);
+    }
+
+    titleInput?.addEventListener('input', triggerAutosave);
+    subjectSelect?.addEventListener('change', triggerAutosave);
+    classSelect?.addEventListener('change', triggerAutosave);
+    bodyInput?.addEventListener('input', triggerAutosave);
+    form.querySelectorAll('input[name="language"]').forEach(r => r.addEventListener('change', triggerAutosave));
+
+    // 4. Form Submit Action
+    async function submitQuestion() {
+      let isValid = true;
+
+      const title = titleInput?.value.trim() || '';
+      if (title.length < 10) {
+        if (titleError) titleError.style.display = 'block';
+        isValid = false;
+      } else {
+        if (titleError) titleError.style.display = 'none';
+      }
+
+      const subject = subjectSelect?.value || '';
+      if (!subject) {
+        if (subjectError) subjectError.style.display = 'block';
+        isValid = false;
+      } else {
+        if (subjectError) subjectError.style.display = 'none';
+      }
+
+      const classLevel = classSelect?.value || '';
+      if (!classLevel) {
+        if (classError) classError.style.display = 'block';
+        isValid = false;
+      } else {
+        if (classError) classError.style.display = 'none';
+      }
+
+      const body = bodyInput?.value.trim() || '';
+      if (body.length < 20) {
+        if (bodyError) bodyError.style.display = 'block';
+        isValid = false;
+      } else {
+        if (bodyError) bodyError.style.display = 'none';
+      }
+
+      if (!isValid) return;
+
+      const language = (form.querySelector('input[name="language"]:checked') as HTMLInputElement)?.value || 'English';
+
+      if (errorAlert) errorAlert.style.display = 'none';
+      if (submitBtn) submitBtn.disabled = true;
+      if (submitLabel) submitLabel.textContent = "Posting question...";
+
+      try {
+        await createQuestion({
+          title,
+          body,
+          subject,
+          class_level: classLevel,
+          language
+        });
+
+        // Clear draft
+        try {
+          localStorage.removeItem(draftKey);
+        } catch {}
+
+        window.location.href = `/boards`;
+
+      } catch (err) {
+        if (errorAlert) errorAlert.style.display = 'flex';
+      } finally {
+        if (submitBtn) submitBtn.disabled = false;
+        if (submitLabel) submitLabel.textContent = "Post question / Tura tambaya";
+      }
+    }
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      submitQuestion();
+    });
+
+    retryBtn?.addEventListener('click', () => {
+      submitQuestion();
+    });
+  });
+</script>
+
+<style>
+  .mc-back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    color: var(--brand-primary);
+    text-decoration: none;
+    font-size: var(--fs-small);
+    font-weight: var(--fw-semibold);
+  }
+
+  .mc-back-btn:hover {
+    color: var(--brand-primary-hover);
+    text-decoration: underline;
+  }
+
+  .mc-ask-container {
+    max-width: 680px;
+    margin: 0 auto;
+  }
+
+  .mc-ask-header {
+    margin-bottom: var(--space-5);
+  }
+
+  .mc-ask-title {
+    font-size: var(--fs-h2);
+    font-weight: var(--fw-bold);
+    color: var(--brand-navy);
+    margin: 0 0 var(--space-1) 0;
+  }
+
+  .mc-ask-subtitle {
+    font-size: var(--fs-small);
+    color: var(--text-secondary);
+    margin: 0;
+  }
+
+  /* Reader Gate Card */
+  .mc-reader-gate-card {
+    background: var(--surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: var(--space-6);
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-4);
+    box-shadow: var(--shadow-card);
+  }
+
+  .mc-reader-gate-icon-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-full);
+    background: var(--brand-primary-tint);
+    color: var(--brand-primary);
+    flex-shrink: 0;
+  }
+
+  .mc-reader-gate-title {
+    font-size: var(--fs-title-sm);
+    font-weight: var(--fw-bold);
+    color: var(--brand-navy);
+    margin: 0 0 var(--space-2) 0;
+  }
+
+  .mc-reader-gate-desc {
+    font-size: var(--fs-body);
+    line-height: var(--lh-body);
+    color: var(--text-secondary);
+    margin: 0 0 var(--space-4) 0;
+  }
+
+  /* Privacy Card */
+  .mc-privacy-card {
+    background: var(--surface-subtle);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: var(--space-2) var(--space-3);
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: var(--fs-small);
+    color: var(--text-secondary);
+    margin-bottom: var(--space-4);
+  }
+
+  .mc-privacy-card svg {
+    color: var(--brand-primary);
+    flex-shrink: 0;
+  }
+
+  /* Draft Banner */
+  .mc-draft-banner {
+    background: var(--brand-primary-tint);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: var(--space-3) var(--space-4);
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+    color: var(--brand-navy);
+    font-size: var(--fs-small);
+  }
+
+  .mc-draft-banner svg {
+    color: var(--brand-primary);
+    flex-shrink: 0;
+  }
+
+  .mc-draft-banner__content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .mc-btn-discard-draft {
+    background: transparent;
+    border: none;
+    color: var(--danger);
+    font-size: var(--fs-micro);
+    font-weight: var(--fw-semibold);
+    cursor: pointer;
+    text-decoration: underline;
+  }
+
+  /* Drop Alert */
+  .mc-drop-alert {
+    background: var(--warning-tint);
+    border: 1px solid var(--warning-border);
+    border-left: 4px solid var(--warning);
+    border-radius: var(--radius-md);
+    padding: var(--space-3) var(--space-4);
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+  }
+
+  .mc-drop-alert svg {
+    color: var(--warning);
+    flex-shrink: 0;
+  }
+
+  .mc-drop-alert__text {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    font-size: var(--fs-small);
+    color: var(--navy-950);
+  }
+
+  /* Ask Form Card */
+  .mc-ask-form-card {
+    background: var(--surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: var(--space-6) var(--space-5);
+    box-shadow: var(--shadow-card);
+  }
+
+  .mc-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+  }
+
+  @media (min-width: 600px) {
+    .mc-grid-2 {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  .mc-lang-radios {
+    display: flex;
+    gap: var(--space-3);
+    flex-wrap: wrap;
+  }
+
+  .mc-lang-pill-radio {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    background: var(--surface-subtle);
+    border: 1px solid var(--border-subtle);
+    padding: var(--space-2) var(--space-4);
+    border-radius: var(--radius-md);
+    font-size: var(--fs-small);
+    font-weight: var(--fw-medium);
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .mc-lang-pill-radio input {
+    accent-color: var(--brand-primary);
+  }
+
+  .mc-lang-pill-radio:hover {
+    border-color: var(--border-strong);
+  }
+
+  .mc-input-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: var(--fs-micro);
+    color: var(--text-muted);
+    margin-top: 4px;
+  }
+
+  .mc-field-error {
+    font-size: var(--fs-micro);
+    color: var(--danger);
+    font-weight: var(--fw-medium);
+    margin-top: 4px;
+    display: block;
+  }
+
+  .mc-phone-warning {
+    background: var(--danger-tint);
+    border: 1px solid var(--danger-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-2) var(--space-3);
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: var(--fs-small);
+    color: var(--danger);
+    margin-top: var(--space-2);
+  }
+
+  .mc-phone-warning svg {
+    flex-shrink: 0;
+  }
+
+  .mc-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-3);
+    margin-top: var(--space-6);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--border-subtle);
+  }
+</style>

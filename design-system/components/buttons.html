@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Malamai Circle - Button Components</title>
+  <link rel="stylesheet" href="../tokens/theme.css">
+  <link rel="stylesheet" href="components.css">
+  <script src="../theme-helper.js"></script>
+</head>
+<body style="padding: var(--space-6); background: var(--surface-bg);">
+
+  <main style="max-width: var(--prose-max); margin: 0 auto; background: var(--surface); padding: var(--space-6); border-radius: var(--radius-lg); border: 1px solid var(--border-subtle);">
+    <h1 style="font-size: var(--fs-h2); line-height: var(--lh-h2); margin-top: 0; color: var(--text-primary);">Buttons</h1>
+    <p style="color: var(--text-muted); font-size: var(--fs-body); margin-bottom: var(--space-6);">
+      Interactive targets are at least 48px by 48px on mobile, with at least 8px spacing. Disabled buttons are not focusable. All buttons show a visible 3px focus ring on focus-visible.
+    </p>
+
+    <!-- Button Group -->
+    <div class="mc-btn-group" role="group" aria-label="Button Variants Showcase">
+      <!-- 1. Primary Button -->
+      <button type="button" class="mc-btn mc-btn--primary" id="btn-primary">
+        <svg class="icon" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+        <span>Submit Lesson Plan</span>
+      </button>
+
+      <!-- 2. Secondary Button -->
+      <button type="button" class="mc-btn mc-btn--secondary" id="btn-secondary">
+        <span>Save as Draft</span>
+      </button>
+
+      <!-- 3. Destructive Button -->
+      <button type="button" class="mc-btn mc-btn--destructive" id="btn-destructive">
+        <svg class="icon" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line>
+        </svg>
+        <span>Delete Resource</span>
+      </button>
+
+      <!-- 4. Disabled Button (Not focusable, disabled attribute & tabindex -1) -->
+      <button type="button" class="mc-btn mc-btn--disabled" id="btn-disabled" disabled tabindex="-1" aria-disabled="true">
+        <span>Pending Approval</span>
+      </button>
+    </div>
+  </main>
+
+</body>
+</html>

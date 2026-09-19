@@ -1,0 +1,469 @@
+---
+import SignInModal from "../components/SignInModal.astro";
+import ReportModal from "../components/ReportModal.astro";
+import { isReadOnlyMode, getCurrentUser } from "../lib/data.js";
+
+interface Props {
+  title: string;
+  description?: string;
+  activeNav?: "home" | "questions" | "resources" | "saved" | "profile" | "admin";
+}
+
+const { 
+  title, 
+  description = "Malamai Circle is a free, lightweight mobile platform for primary and secondary school teachers in Northern Nigeria.", 
+  activeNav = "home" 
+} = Astro.props;
+
+let readOnly = false;
+let currentUser = null;
+
+try {
+  readOnly = isReadOnlyMode();
+  currentUser = await getCurrentUser();
+} catch (e) {
+  readOnly = false;
+  currentUser = null;
+}
+
+const isMember = currentUser && currentUser.role !== "Reader";
+const isStaff = currentUser && (currentUser.role === "Admin" || currentUser.role === "Moderator");
+// Dynamic Home Route: members route to /home (Teacher Dashboard), guests route to / (Marketing)
+const homeHref = isMember ? "/home" : "/";
+---
+
+<!DOCTYPE html>
+<html lang="en" data-theme="system">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="description" content={description} />
+  <meta name="theme-color" content="#0B192C" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Malamai Circle" />
+  
+  <title>{title} | Malamai Circle</title>
+
+  <!-- PWA Manifest & Favicon -->
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+  <!-- Design System Token Bridge & Component Stylesheets (Native system fonts only, 0 bytes external web fonts) -->
+  <link rel="stylesheet" href="/styles/tokens.css" />
+  <link rel="stylesheet" href="/styles/theme.css" />
+  <link rel="stylesheet" href="/styles/components.css" />
+
+  <!-- Early Theme Helper (prevents theme flash on shared or personal devices) -->
+  <script is:inline src="/theme-helper.js"></script>
+
+  <style is:global>
+    /* App Shell Base Styles strictly using CSS Custom Properties */
+    body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding-bottom: 84px; /* Touch buffer for mobile bottom nav */
+      background: var(--background, var(--surface-bg));
+      color: var(--text-primary);
+      font-family: var(--font-family-sans, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
+      margin: 0;
+    }
+
+    .mc-main-container {
+      width: 100%;
+      max-width: 960px;
+      margin: 0 auto;
+      padding: var(--space-4);
+      flex: 1;
+      box-sizing: border-box;
+    }
+
+    @media (min-width: 640px) {
+      .mc-main-container {
+        padding: var(--space-6) var(--space-4);
+      }
+    }
+
+    /* Top App Header */
+    .mc-header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border-subtle);
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      box-shadow: var(--shadow-subtle);
+    }
+
+    .mc-header__container {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: var(--space-2) var(--space-4);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-2);
+      min-height: 56px;
+    }
+
+    .mc-header__brand {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      color: var(--text-primary);
+      text-decoration: none;
+      font-weight: var(--fw-bold, 700);
+      font-size: var(--fs-title-sm, 1.125rem);
+      letter-spacing: -0.01em;
+      min-height: var(--touch-min);
+    }
+
+    .mc-header__brand svg {
+      color: var(--brand);
+    }
+
+    .mc-header__brand-badge {
+      font-size: var(--fs-micro, 0.75rem);
+      font-weight: var(--fw-semibold, 600);
+      background: var(--brand-primary-tint, #F0FDFA);
+      border: 1px solid var(--border-subtle);
+      color: var(--brand-primary, #0D9488);
+      padding: 2px 8px;
+      border-radius: var(--radius-full);
+      display: none;
+    }
+
+    @media (min-width: 480px) {
+      .mc-header__brand-badge {
+        display: inline-block;
+      }
+    }
+
+    .mc-header__controls {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+
+    /* Live Network Status Indicator */
+    .mc-network-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: var(--fs-micro, 0.75rem);
+      font-weight: var(--fw-medium, 500);
+      padding: 4px 10px;
+      border-radius: var(--radius-full);
+      border: 1px solid var(--border-subtle);
+      background: var(--surface);
+      color: var(--text-muted);
+      transition: all 0.2s ease;
+    }
+
+    .mc-network-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--success, #059669);
+      display: inline-block;
+      flex-shrink: 0;
+    }
+
+    .mc-network-badge.is-online .mc-network-dot {
+      background: var(--success, #059669);
+      box-shadow: 0 0 0 2px var(--success-tint, #ECFDF5);
+    }
+
+    .mc-network-badge.is-offline {
+      background: var(--warning-tint, #FEF3C7);
+      border-color: var(--warning-border, #FCD34D);
+      color: var(--warning, #D97706);
+    }
+
+    .mc-network-badge.is-offline .mc-network-dot {
+      background: var(--warning, #D97706);
+      box-shadow: 0 0 0 2px rgba(217, 119, 6, 0.2);
+    }
+
+    /* Bottom Navigation Bar (Mobile First, 44px+ touch targets) */
+    .mc-bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--surface);
+      border-top: 1px solid var(--border-subtle);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 6px var(--space-2);
+      z-index: 50;
+      box-shadow: 0 -2px 10px rgba(11, 25, 44, 0.04);
+      backdrop-filter: blur(8px);
+    }
+
+    .mc-bottom-nav__link {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-width: 52px;
+      min-height: 48px;
+      padding: 4px 8px;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: var(--fs-micro, 0.75rem);
+      font-weight: var(--fw-medium, 500);
+      gap: 3px;
+      border-radius: var(--radius-sm);
+      transition: color 0.15s ease, transform 0.1s ease;
+    }
+
+    .mc-bottom-nav__link svg {
+      width: 20px;
+      height: 20px;
+      stroke-width: 2;
+      transition: stroke 0.15s ease;
+    }
+
+    .mc-bottom-nav__link:hover,
+    .mc-bottom-nav__link:focus-visible {
+      color: var(--brand-primary, #0D9488);
+    }
+
+    .mc-bottom-nav__link[aria-current="page"],
+    .mc-bottom-nav__link.is-active {
+      color: var(--brand-primary, #0D9488);
+      font-weight: var(--fw-bold, 700);
+    }
+
+    .mc-bottom-nav__link.is-active svg {
+      stroke: var(--brand-primary, #0D9488);
+      stroke-width: 2.4;
+    }
+
+    /* Skip Link for Accessibility */
+    .mc-skip-link {
+      position: absolute;
+      top: -48px;
+      left: 8px;
+      background: var(--brand-primary, #0D9488);
+      color: #fff;
+      padding: 8px 14px;
+      border-radius: var(--radius-sm);
+      z-index: 100;
+      text-decoration: none;
+      font-size: var(--fs-small);
+      font-weight: var(--fw-semibold);
+      transition: top 0.2s ease;
+    }
+
+    .mc-skip-link:focus {
+      top: 8px;
+    }
+
+    /* Global Emergency Read-Only Banner */
+    .mc-global-readonly-banner {
+      background: var(--warning-tint, #FEF3C7);
+      border-bottom: 2px solid var(--warning, #D97706);
+      color: var(--text-primary);
+      padding: var(--space-2) var(--space-4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-2);
+      font-size: var(--fs-small);
+      font-weight: var(--fw-bold);
+      text-align: center;
+    }
+
+    .mc-global-readonly-banner svg {
+      color: var(--warning, #D97706);
+      flex-shrink: 0;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Accessible Skip Link -->
+  <a href="#main-content" class="mc-skip-link">Skip to main content</a>
+
+  <!-- Top App Header -->
+  <header class="mc-header" role="banner">
+    <div class="mc-header__container">
+      
+      <!-- Brand Link -->
+      <a href="/" class="mc-header__brand" aria-label="Malamai Circle Home">
+        <svg class="icon" viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+        <span>Malamai Circle</span>
+        <span class="mc-header__brand-badge">Teachers Hub</span>
+      </a>
+
+      <!-- Header Controls: Network Status, Language & Theme -->
+      <div class="mc-header__controls">
+        <!-- Live Network Status Indicator -->
+        <div class="mc-network-badge is-online" id="mc-network-status" aria-live="polite" role="status" title="Connected to network">
+          <span class="mc-network-dot" id="mc-network-dot" aria-hidden="true"></span>
+          <span class="mc-network-label" id="mc-network-label">Online</span>
+        </div>
+
+        <!-- Language Switcher -->
+        <nav class="mc-lang-control" aria-label="Language selection / Zaɓin Harshe">
+          <button type="button" class="mc-lang-btn" id="lang-btn-ha" aria-pressed="false" title="Sauya zuwa Hausa">HA</button>
+          <button type="button" class="mc-lang-btn" id="lang-btn-en" aria-pressed="true" title="Switch to English">EN</button>
+        </nav>
+
+        <!-- Theme Quick Toggle -->
+        <button type="button" class="mc-btn mc-btn--secondary" id="quick-theme-toggle" aria-label="Toggle dark mode" style="min-width: 40px; min-height: 40px; padding: 0 10px;">
+          <svg class="icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </button>
+
+        <!-- Admin Hub Quick Access for Staff -->
+        {isStaff && (
+          <a href="/admin/reports" class="mc-btn mc-btn--secondary" aria-label="Open Admin & Moderation Hub" style="min-height: 40px; padding: 0 10px; font-size: var(--fs-micro); font-weight: var(--fw-bold);" title="Admin & Moderation Hub">
+            <svg class="icon" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="3" y1="9" x2="21" y2="9"></line>
+              <line x1="9" y1="21" x2="9" y2="9"></line>
+            </svg>
+            <span>Admin</span>
+          </a>
+        )}
+      </div>
+
+    </div>
+
+    <!-- Global Read-Only Mode Banner (Rule ADM-09) -->
+    {readOnly && (
+      <aside class="mc-global-readonly-banner" role="alert">
+        <svg class="icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+        <strong>Malamai Circle is currently in read-only mode.</strong>
+      </aside>
+    )}
+  </header>
+
+  <!-- Main Content View -->
+  <main class="mc-main-container" id="main-content">
+    <slot />
+  </main>
+
+  <!-- Mobile Bottom Navigation (44px+ Touch Targets, Dynamic Home Link) -->
+  <nav class="mc-bottom-nav" aria-label="Main Navigation">
+    <a href={homeHref} class:list={["mc-bottom-nav__link", { "is-active": activeNav === "home" }]} aria-current={activeNav === "home" ? "page" : undefined}>
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+      </svg>
+      <span>Home</span>
+    </a>
+
+    <a href="/boards" class:list={["mc-bottom-nav__link", { "is-active": activeNav === "questions" }]} aria-current={activeNav === "questions" ? "page" : undefined}>
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="10"></circle>
+        <polyline points="12 6 12 12 16 14"></polyline>
+      </svg>
+      <span>Ask &amp; Answer</span>
+    </a>
+
+    <a href="/shelf" class:list={["mc-bottom-nav__link", { "is-active": activeNav === "resources" }]} aria-current={activeNav === "resources" ? "page" : undefined}>
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+      </svg>
+      <span>Shelf</span>
+    </a>
+
+    <a href="/saved" class:list={["mc-bottom-nav__link", { "is-active": activeNav === "saved" }]} aria-current={activeNav === "saved" ? "page" : undefined}>
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+      </svg>
+      <span>Saved</span>
+    </a>
+
+    <a href="/profile" class:list={["mc-bottom-nav__link", { "is-active": activeNav === "profile" }]} aria-current={activeNav === "profile" ? "page" : undefined}>
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+        <circle cx="12" cy="7" r="4"></circle>
+      </svg>
+      <span>Profile</span>
+    </a>
+  </nav>
+
+  <!-- Client-side Interactive Scripts: Network Status, SW Registration, Theme & Language -->
+  <script is:inline>
+    // 1. Service Worker Registration for Offline Shell
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch((err) => {
+          console.log('[Malamai SW] registration failed:', err);
+        });
+      });
+    }
+
+    // 2. Real-time Network Status Indicator
+    const netBadge = document.getElementById('mc-network-status');
+    const netLabel = document.getElementById('mc-network-label');
+
+    function updateNetworkStatus() {
+      const isOnline = navigator.onLine;
+      if (isOnline) {
+        netBadge?.classList.remove('is-offline');
+        netBadge?.classList.add('is-online');
+        if (netLabel) netLabel.textContent = 'Online';
+        netBadge?.setAttribute('title', 'Connected to internet');
+      } else {
+        netBadge?.classList.remove('is-online');
+        netBadge?.classList.add('is-offline');
+        if (netLabel) netLabel.textContent = 'Offline (Ba intanet)';
+        netBadge?.setAttribute('title', 'Working offline from local cache');
+      }
+    }
+
+    window.addEventListener('online', updateNetworkStatus);
+    window.addEventListener('offline', updateNetworkStatus);
+    updateNetworkStatus();
+
+    // 3. Theme Toggle
+    document.getElementById('quick-theme-toggle')?.addEventListener('click', () => {
+      const current = document.documentElement.getAttribute('data-theme') || 'system';
+      const next = current === 'dark' ? 'light' : 'dark';
+      if (typeof setTheme === 'function') {
+        setTheme(next);
+      } else {
+        document.documentElement.setAttribute('data-theme', next);
+      }
+    });
+
+    // 4. Language Toggle
+    const haBtn = document.getElementById('lang-btn-ha');
+    const enBtn = document.getElementById('lang-btn-en');
+    haBtn?.addEventListener('click', () => {
+      haBtn.setAttribute('aria-pressed', 'true');
+      enBtn?.setAttribute('aria-pressed', 'false');
+      document.documentElement.setAttribute('lang', 'ha');
+    });
+    enBtn?.addEventListener('click', () => {
+      enBtn.setAttribute('aria-pressed', 'true');
+      haBtn?.setAttribute('aria-pressed', 'false');
+      document.documentElement.setAttribute('lang', 'en');
+    });
+  </script>
+
+  <!-- Global Quick Sign-In Modal -->
+  <SignInModal />
+
+  <!-- Global Member Report Modal (PRD Section 7.1, 8.2 & 15.5) -->
+  <ReportModal />
+
+</body>
+</html>

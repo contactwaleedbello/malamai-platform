@@ -1,0 +1,97 @@
+/* ==========================================================================
+   Malamai Circle - Design System Token Bridge (tokens.css)
+   Mobile-first semantic custom properties referencing theme primitives.
+   System fonts only (0 bytes external downloads, strict 150 KB budget).
+   ========================================================================== */
+
+@import './theme.css';
+
+:root {
+  /* Core Semantic Color Tokens */
+  --background: var(--surface-bg);
+  --surface: var(--surface);
+  --surface-card: var(--surface);
+  --surface-subtle: var(--surface-subtle);
+  --surface-elevated: var(--surface-elevated);
+  --surface-overlay: var(--surface-overlay);
+  
+  --text-primary: var(--text-primary);
+  --text-secondary: var(--text-muted);
+  --text-muted: var(--text-muted);
+  --text-disabled: var(--text-disabled);
+  --text-inverted: var(--text-inverted);
+  
+  --border: var(--border-subtle);
+  --border-subtle: var(--border-subtle);
+  --border-strong: var(--border-strong);
+  --border-hover: var(--border-strong);
+  
+  --brand-primary: var(--brand);
+  --brand-primary-hover: var(--brand-hover);
+  --brand-primary-active: var(--brand-hover);
+  --brand-primary-tint: var(--brand-tint);
+  --on-brand-primary: var(--on-brand);
+  
+  --brand-navy: var(--text-primary);
+  --brand-navy-tint: var(--surface-subtle);
+  --navy-950: var(--text-primary);
+  --navy-400: var(--border-strong);
+
+  --danger: var(--feedback-error);
+  --on-danger: var(--feedback-error-on);
+  --danger-tint: var(--feedback-error-tint);
+  --danger-border: var(--feedback-error);
+  
+  --success: var(--feedback-success);
+  --on-success: var(--feedback-success-on);
+  --success-tint: var(--feedback-success-tint);
+  --success-border: var(--feedback-success);
+  
+  --warning: var(--feedback-warning);
+  --on-warning: var(--feedback-warning-on);
+  --warning-tint: var(--feedback-warning-tint);
+  --warning-border: var(--feedback-warning);
+  
+  --info: var(--feedback-info);
+  --on-info: var(--feedback-info-on);
+  --info-tint: var(--feedback-info-tint);
+  --info-border: var(--feedback-info);
+
+  /* Spacing Scale (based on 4px rhythm from spacing.json) */
+  --space-0: 0;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* Typography Stacks (Native system fonts only - zero bytes downloaded) */
+  --font-family-sans: var(--font-sans);
+  --font-family-mono: var(--font-mono);
+
+  /* Elevation Shadows */
+  --shadow-subtle: var(--shadow-subtle);
+  --shadow-card: var(--shadow-card);
+  --shadow-elevated: var(--shadow-elevated);
+  --shadow-modal: var(--shadow-modal);
+  --shadow-sm: var(--shadow-subtle);
+  --shadow-md: var(--shadow-card);
+  --shadow-lg: var(--shadow-elevated);
+
+  /* Modern Card & Element Geometry */
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+
+  /* Touch & Interaction Constraints (WCAG 2.1 AA / PRD) */
+  --touch-min: 44px;
+  --target-gap-min: 8px;
+}

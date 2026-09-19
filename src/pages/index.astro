@@ -1,0 +1,896 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { getCurrentUser } from "../lib/data.js";
+
+let user = null;
+try {
+  user = await getCurrentUser();
+} catch (e) {
+  user = null;
+}
+
+const isMember = user && user.role !== "Reader";
+---
+
+<BaseLayout title="A place for teachers to help teachers" activeNav="home">
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       1. UTILITY HEADER — Brand lockup + quiet navigation
+       ═══════════════════════════════════════════════════════════════════ -->
+  <div class="lp-utility-bar">
+    <div class="lp-utility-bar__inner">
+      <div class="lp-brand-lockup">
+        <span class="lp-brand-dot" aria-hidden="true"></span>
+        <span class="lp-brand-name">Malamai Circle</span>
+        <span class="lp-brand-context">Built for low-bandwidth Northern Nigerian schools</span>
+      </div>
+      <nav class="lp-utility-nav" aria-label="Quick actions">
+        <a href="/boards" class="lp-utility-link">Browse Questions</a>
+        {isMember ? (
+          <a href="/home" class="lp-utility-btn">Teacher Dashboard</a>
+        ) : (
+          <a href="/join" class="lp-utility-btn">Sign In / Join</a>
+        )}
+      </nav>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       2. EDITORIAL HERO — Mission statement + CTAs
+       ═══════════════════════════════════════════════════════════════════ -->
+  <header class="lp-hero" aria-labelledby="hero-headline">
+    <p class="lp-hero__kicker">Teacher-to-Teacher Knowledge Archive</p>
+    <h1 id="hero-headline" class="lp-hero__headline">
+      The classroom question you ask tonight stays answered for the next&nbsp;teacher.
+    </h1>
+    <p class="lp-hero__prose">
+      A free, lightweight web app where primary and secondary school teachers across Northern Nigeria share lesson plans, worksheets, and classroom solutions — sorted by subject and class — that don't get lost in chat&nbsp;groups.
+    </p>
+
+    <div class="lp-hero__ctas">
+      {isMember ? (
+        <a href="/home" class="lp-cta lp-cta--primary" id="hero-cta-dashboard">
+          <span>Open Teacher Dashboard</span>
+          <svg class="icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+        </a>
+      ) : (
+        <a href="/join" class="lp-cta lp-cta--primary" id="hero-cta-join">
+          <span>Join as a teacher</span>
+          <svg class="icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+        </a>
+      )}
+      <a href="/boards" class="lp-cta lp-cta--secondary" id="hero-cta-read">
+        Read without joining
+      </a>
+    </div>
+
+    <p class="lp-hero__trust-chip">
+      Under 150 KB · Installs to home screen · Works offline · No data waste
+    </p>
+  </header>
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       3. REALITY / CONTRAST — Why this exists
+       ═══════════════════════════════════════════════════════════════════ -->
+  <section class="lp-section" aria-labelledby="contrast-heading">
+    <div class="lp-section__label">
+      <span class="lp-section__marker" aria-hidden="true"></span>
+      <p class="lp-section__kicker">Why this exists</p>
+    </div>
+    <h2 id="contrast-heading" class="lp-section__heading">Good advice shouldn't vanish by&nbsp;morning</h2>
+
+    <div class="lp-contrast-grid">
+      <!-- Card A: The Problem -->
+      <div class="lp-contrast-card lp-contrast-card--problem">
+        <div class="lp-contrast-card__label">
+          <svg class="icon" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          <span>Lost in WhatsApp</span>
+        </div>
+        <ul class="lp-contrast-list">
+          <li>40 messages about unrelated topics</li>
+          <li>Heavy videos you can't afford to load</li>
+          <li>Answers vanish by morning</li>
+          <li>No way to search by subject or class</li>
+        </ul>
+      </div>
+
+      <!-- Card B: The Solution -->
+      <div class="lp-contrast-card lp-contrast-card--solution">
+        <div class="lp-contrast-card__label">
+          <svg class="icon" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          <span>Permanent &amp; Sorted</span>
+        </div>
+        <ul class="lp-contrast-list">
+          <li>Indexed by subject and class level</li>
+          <li>Readable on 2G and 3G connections</li>
+          <li>Saved directly to your phone</li>
+          <li>Open offline inside your classroom</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       4. HOW IT WORKS — Three tactile step cards
+       ═══════════════════════════════════════════════════════════════════ -->
+  <section class="lp-section" aria-labelledby="steps-heading">
+    <div class="lp-section__label">
+      <span class="lp-section__marker" aria-hidden="true"></span>
+      <p class="lp-section__kicker">How it works</p>
+    </div>
+    <h2 id="steps-heading" class="lp-section__heading">Three steps. No email. No payment.</h2>
+
+    <ol class="lp-steps">
+      <li class="lp-step">
+        <div class="lp-step__num">01</div>
+        <div class="lp-step__body">
+          <h3 class="lp-step__title">Join with a PIN</h3>
+          <p class="lp-step__desc">Set a username and 6-digit code. No email required. Choose your state, LGA, and teaching subjects. Optional TRCN check gives you a verified teacher&nbsp;mark.</p>
+        </div>
+      </li>
+      <li class="lp-step">
+        <div class="lp-step__num">02</div>
+        <div class="lp-step__body">
+          <h3 class="lp-step__title">Ask or answer in your language</h3>
+          <p class="lp-step__desc">Post in Hausa or English. Clear advice tagged by JSS/SS class levels and subjects. Every answer stays indexed so the next teacher finds it&nbsp;too.</p>
+        </div>
+      </li>
+      <li class="lp-step">
+        <div class="lp-step__num">03</div>
+        <div class="lp-step__body">
+          <h3 class="lp-step__title">Save to your phone</h3>
+          <p class="lp-step__desc">Tap Save on any worksheet or thread. Open it inside your classroom tomorrow with zero signal. Works on shared phones&nbsp;too.</p>
+        </div>
+      </li>
+    </ol>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       5. EVIDENCE STRIP — Sourced data (PRD Section 3)
+       ═══════════════════════════════════════════════════════════════════ -->
+  <section class="lp-evidence" aria-labelledby="evidence-heading">
+    <h2 id="evidence-heading" class="sr-only">Classroom realities in Northern Nigeria</h2>
+    <div class="lp-evidence__grid">
+      <div class="lp-evidence__card">
+        <span class="lp-evidence__figure">124</span>
+        <span class="lp-evidence__unit">pupils per teacher</span>
+        <span class="lp-evidence__cite">North-east average — Global Partnership for Education / VON, 2026</span>
+      </div>
+      <div class="lp-evidence__card">
+        <span class="lp-evidence__figure">39%</span>
+        <span class="lp-evidence__unit">rural smartphone rate</span>
+        <span class="lp-evidence__cite">Against 73% in cities — GSMA / TechCabal, 2024</span>
+      </div>
+      <div class="lp-evidence__card">
+        <span class="lp-evidence__figure">1</span>
+        <span class="lp-evidence__unit">teacher schools</span>
+        <span class="lp-evidence__cite">Common across rural northern primaries — UBEC, 2022</span>
+      </div>
+    </div>
+    <p class="lp-evidence__note">Built for shared phones and small data&nbsp;bundles.</p>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       6. COMMUNITY GUARDRAILS — The rules, in short
+       ═══════════════════════════════════════════════════════════════════ -->
+  <section class="lp-section" aria-labelledby="rules-heading">
+    <div class="lp-section__label">
+      <span class="lp-section__marker lp-section__marker--amber" aria-hidden="true"></span>
+      <p class="lp-section__kicker">The rules, in short</p>
+    </div>
+    <h2 id="rules-heading" class="lp-section__heading">Trust, dignity, and safety first</h2>
+
+    <div class="lp-rules-card">
+      <div class="lp-rules-card__advisory">
+        <svg class="icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+        <span>Teachers' advice, not official guidance.</span>
+      </div>
+
+      <ul class="lp-rules-list">
+        <li>
+          <strong>No pupil names or photos.</strong>
+          <span>Protect children's privacy absolutely.</span>
+        </li>
+        <li>
+          <strong>No politics or religion.</strong>
+          <span>Strictly curriculum and classroom teaching.</span>
+        </li>
+        <li>
+          <strong>No selling.</strong>
+          <span>Everything shared here is free for teachers.</span>
+        </li>
+        <li>
+          <strong>Community moderation.</strong>
+          <span>Fast safety auto-hide on serious reports.</span>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       7. FINAL CTA + DIGNIFIED FOOTER
+       ═══════════════════════════════════════════════════════════════════ -->
+  <section class="lp-final-cta" aria-labelledby="final-cta-heading">
+    <h2 id="final-cta-heading" class="lp-final-cta__heading">
+      Join the circle of teachers building each other&nbsp;up.
+    </h2>
+    <p class="lp-final-cta__desc">
+      Free. Private. Lightweight. Built by teachers, for teachers across Northern Nigeria.
+    </p>
+    <div class="lp-hero__ctas">
+      {isMember ? (
+        <a href="/home" class="lp-cta lp-cta--primary">
+          <span>Go to Teacher Dashboard</span>
+          <svg class="icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+        </a>
+      ) : (
+        <a href="/join" class="lp-cta lp-cta--primary">
+          <span>Join as a teacher</span>
+          <svg class="icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+        </a>
+      )}
+      <a href="/boards" class="lp-cta lp-cta--secondary">
+        Read without joining
+      </a>
+    </div>
+  </section>
+
+  <footer class="lp-footer" role="contentinfo">
+    <div class="lp-footer__row">
+      <div class="lp-footer__contact">
+        <svg class="icon" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+        <span>Complaints: <a href="mailto:complaints@malamai.org" class="lp-footer__link">complaints@malamai.org</a></span>
+      </div>
+      <div class="lp-footer__links">
+        <a href="/privacy" class="lp-footer__link">Privacy Notice (NDPA)</a>
+        <span class="lp-footer__sep" aria-hidden="true">·</span>
+        <a href="/boards" class="lp-footer__link">Public Boards</a>
+        <span class="lp-footer__sep" aria-hidden="true">·</span>
+        <a href="/join" class="lp-footer__link">Join</a>
+      </div>
+    </div>
+    <div class="lp-footer__row lp-footer__row--meta">
+      <span>Languages: <strong>English</strong> &amp; <strong>Harshen Hausa</strong></span>
+      <span class="lp-footer__sep" aria-hidden="true">·</span>
+      <span>Non-commercial, teacher-first operation</span>
+    </div>
+  </footer>
+
+</BaseLayout>
+
+<style>
+  /* ====================================================================
+     MARKETING LANDING PAGE — Editorial Craft System
+     Inspired by GOV.UK, The Marshall Project, Linear.
+     System fonts only. Zero external downloads. Under 150 KB.
+     ==================================================================== */
+
+  /* Accessibility helper */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  /* ── 1. UTILITY HEADER ─────────────────────────────────────────────── */
+  .lp-utility-bar {
+    border-bottom: 1px solid var(--border-subtle);
+    background: var(--surface);
+    margin: calc(-1 * var(--space-4));
+    margin-bottom: var(--space-6);
+    padding: 0 var(--space-4);
+  }
+
+  .lp-utility-bar__inner {
+    max-width: 960px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    min-height: 48px;
+    flex-wrap: wrap;
+    padding: var(--space-2) 0;
+  }
+
+  .lp-brand-lockup {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .lp-brand-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--brand);
+    flex-shrink: 0;
+    box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.12);
+  }
+
+  .lp-brand-name {
+    font-size: var(--fs-body);
+    font-weight: var(--fw-bold);
+    color: var(--text-primary);
+    letter-spacing: -0.01em;
+  }
+
+  .lp-brand-context {
+    font-size: var(--fs-micro);
+    color: var(--text-muted);
+    display: none;
+  }
+
+  @media (min-width: 640px) {
+    .lp-brand-context {
+      display: inline;
+    }
+  }
+
+  .lp-utility-nav {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  .lp-utility-link {
+    font-size: var(--fs-small);
+    font-weight: var(--fw-medium);
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color 0.15s ease;
+    padding: var(--space-1) 0;
+  }
+
+  .lp-utility-link:hover {
+    color: var(--brand);
+  }
+
+  .lp-utility-btn {
+    display: inline-flex;
+    align-items: center;
+    font-size: var(--fs-small);
+    font-weight: var(--fw-semibold);
+    color: var(--text-primary);
+    background: var(--surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: var(--space-2) var(--space-4);
+    text-decoration: none;
+    min-height: 36px;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .lp-utility-btn:hover {
+    border-color: var(--border-strong);
+    box-shadow: var(--shadow-subtle);
+  }
+
+  /* ── 2. EDITORIAL HERO ─────────────────────────────────────────────── */
+  .lp-hero {
+    text-align: center;
+    padding: var(--space-10) 0 var(--space-8);
+    border-bottom: 1px solid var(--border-subtle);
+    margin-bottom: var(--space-8);
+    max-width: 680px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .lp-hero__kicker {
+    font-size: var(--fs-micro);
+    font-weight: var(--fw-bold);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--brand);
+    margin: 0 0 var(--space-4) 0;
+  }
+
+  .lp-hero__headline {
+    font-size: clamp(1.75rem, 4.5vw, 2.5rem);
+    font-weight: var(--fw-bold);
+    color: var(--text-primary);
+    line-height: 1.15;
+    letter-spacing: -0.025em;
+    margin: 0 0 var(--space-5) 0;
+  }
+
+  .lp-hero__prose {
+    font-size: var(--fs-body-lg);
+    line-height: 1.65;
+    color: var(--text-muted);
+    margin: 0 0 var(--space-6) 0;
+    max-width: 580px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .lp-hero__ctas {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-3);
+    margin-bottom: var(--space-5);
+  }
+
+  .lp-hero__trust-chip {
+    font-size: var(--fs-micro);
+    font-weight: var(--fw-medium);
+    color: var(--text-muted);
+    letter-spacing: 0.02em;
+    margin: 0;
+  }
+
+  /* ── CTAs (shared) ─────────────────────────────────────────────────── */
+  .lp-cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    min-height: var(--touch-min);
+    padding: var(--space-3) var(--space-6);
+    font-family: var(--font-sans);
+    font-size: var(--fs-body);
+    font-weight: var(--fw-semibold);
+    text-decoration: none;
+    border-radius: var(--radius-md);
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    user-select: none;
+  }
+
+  .lp-cta:active {
+    transform: scale(0.985);
+  }
+
+  .lp-cta--primary {
+    background: var(--brand);
+    color: var(--on-brand);
+    border-color: var(--brand);
+    box-shadow: var(--shadow-subtle);
+  }
+
+  .lp-cta--primary:hover {
+    background: var(--brand-hover);
+    border-color: var(--brand-hover);
+    box-shadow: var(--shadow-card);
+  }
+
+  .lp-cta--secondary {
+    background: var(--surface);
+    color: var(--text-primary);
+    border-color: var(--border-subtle);
+  }
+
+  .lp-cta--secondary:hover {
+    border-color: var(--border-strong);
+    box-shadow: var(--shadow-subtle);
+  }
+
+  /* ── SECTION LAYOUT (shared) ───────────────────────────────────────── */
+  .lp-section {
+    max-width: 720px;
+    margin: 0 auto var(--space-10);
+  }
+
+  .lp-section__label {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-bottom: var(--space-2);
+  }
+
+  .lp-section__marker {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--brand);
+    flex-shrink: 0;
+  }
+
+  .lp-section__marker--amber {
+    background: var(--feedback-warning);
+  }
+
+  .lp-section__kicker {
+    font-size: var(--fs-micro);
+    font-weight: var(--fw-bold);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    margin: 0;
+  }
+
+  .lp-section__heading {
+    font-size: var(--fs-h2);
+    font-weight: var(--fw-bold);
+    color: var(--text-primary);
+    line-height: var(--lh-h2);
+    letter-spacing: -0.02em;
+    margin: 0 0 var(--space-5) 0;
+  }
+
+  /* ── 3. CONTRAST GRID ──────────────────────────────────────────────── */
+  .lp-contrast-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+  }
+
+  @media (min-width: 560px) {
+    .lp-contrast-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  .lp-contrast-card {
+    background: var(--surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: var(--space-5);
+    box-shadow: var(--shadow-subtle);
+  }
+
+  .lp-contrast-card__label {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: var(--fs-small);
+    font-weight: var(--fw-bold);
+    margin-bottom: var(--space-3);
+    padding-bottom: var(--space-3);
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .lp-contrast-card--problem .lp-contrast-card__label {
+    color: var(--feedback-error);
+  }
+
+  .lp-contrast-card--problem {
+    border-left: 3px solid var(--feedback-error);
+  }
+
+  .lp-contrast-card--solution .lp-contrast-card__label {
+    color: var(--brand);
+  }
+
+  .lp-contrast-card--solution {
+    border-left: 3px solid var(--brand);
+  }
+
+  .lp-contrast-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .lp-contrast-list li {
+    font-size: var(--fs-small);
+    line-height: var(--lh-small);
+    color: var(--text-muted);
+    padding-left: var(--space-4);
+    position: relative;
+  }
+
+  .lp-contrast-list li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 7px;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--border-strong);
+  }
+
+  .lp-contrast-card--problem .lp-contrast-list li::before {
+    background: var(--feedback-error);
+    opacity: 0.4;
+  }
+
+  .lp-contrast-card--solution .lp-contrast-list li::before {
+    background: var(--brand);
+    opacity: 0.5;
+  }
+
+  /* ── 4. HOW IT WORKS STEPS ─────────────────────────────────────────── */
+  .lp-steps {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    counter-reset: none;
+  }
+
+  .lp-step {
+    display: flex;
+    gap: var(--space-5);
+    padding: var(--space-5) 0;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .lp-step:first-child {
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .lp-step__num {
+    font-size: var(--fs-h3);
+    font-weight: var(--fw-bold);
+    color: var(--brand);
+    flex-shrink: 0;
+    width: 44px;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    opacity: 0.7;
+  }
+
+  .lp-step__body {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .lp-step__title {
+    font-size: var(--fs-body-lg);
+    font-weight: var(--fw-bold);
+    color: var(--text-primary);
+    margin: 0 0 var(--space-1) 0;
+    letter-spacing: -0.01em;
+    line-height: 1.3;
+  }
+
+  .lp-step__desc {
+    font-size: var(--fs-small);
+    line-height: 1.65;
+    color: var(--text-muted);
+    margin: 0;
+  }
+
+  /* ── 5. EVIDENCE STRIP ─────────────────────────────────────────────── */
+  .lp-evidence {
+    background: var(--surface);
+    border-top: 1px solid var(--border-subtle);
+    border-bottom: 1px solid var(--border-subtle);
+    padding: var(--space-8) var(--space-4);
+    margin: 0 calc(-1 * var(--space-4)) var(--space-10);
+  }
+
+  .lp-evidence__grid {
+    max-width: 720px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-5);
+  }
+
+  @media (min-width: 560px) {
+    .lp-evidence__grid {
+      grid-template-columns: repeat(3, 1fr);
+      text-align: center;
+    }
+  }
+
+  .lp-evidence__card {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .lp-evidence__figure {
+    font-size: 2.25rem;
+    font-weight: var(--fw-bold);
+    color: var(--text-primary);
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .lp-evidence__unit {
+    font-size: var(--fs-small);
+    font-weight: var(--fw-semibold);
+    color: var(--text-primary);
+    margin-bottom: 4px;
+  }
+
+  .lp-evidence__cite {
+    font-size: var(--fs-micro);
+    color: var(--text-muted);
+    line-height: 1.4;
+  }
+
+  .lp-evidence__note {
+    text-align: center;
+    font-size: var(--fs-small);
+    font-weight: var(--fw-medium);
+    color: var(--text-muted);
+    margin: var(--space-5) auto 0;
+    max-width: 720px;
+  }
+
+  /* ── 6. COMMUNITY RULES CARD ───────────────────────────────────────── */
+  .lp-rules-card {
+    background: var(--surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-subtle);
+  }
+
+  .lp-rules-card__advisory {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-5);
+    background: var(--feedback-warning-tint);
+    border-bottom: 1px solid var(--border-subtle);
+    font-size: var(--fs-small);
+    font-weight: var(--fw-bold);
+    color: var(--text-primary);
+  }
+
+  .lp-rules-card__advisory svg {
+    color: var(--feedback-warning);
+    flex-shrink: 0;
+  }
+
+  .lp-rules-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .lp-rules-list li {
+    padding: var(--space-4) var(--space-5);
+    border-bottom: 1px solid var(--border-subtle);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .lp-rules-list li:last-child {
+    border-bottom: none;
+  }
+
+  .lp-rules-list li strong {
+    font-size: var(--fs-body);
+    font-weight: var(--fw-bold);
+    color: var(--text-primary);
+  }
+
+  .lp-rules-list li span {
+    font-size: var(--fs-small);
+    color: var(--text-muted);
+    line-height: var(--lh-small);
+  }
+
+  /* ── 7. FINAL CTA ──────────────────────────────────────────────────── */
+  .lp-final-cta {
+    max-width: 680px;
+    margin: 0 auto;
+    text-align: center;
+    padding: var(--space-10) 0 var(--space-8);
+    border-top: 1px solid var(--border-subtle);
+    margin-bottom: var(--space-4);
+  }
+
+  .lp-final-cta__heading {
+    font-size: clamp(1.5rem, 3.5vw, 2rem);
+    font-weight: var(--fw-bold);
+    color: var(--text-primary);
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    margin: 0 0 var(--space-3) 0;
+  }
+
+  .lp-final-cta__desc {
+    font-size: var(--fs-body-lg);
+    color: var(--text-muted);
+    margin: 0 0 var(--space-6) 0;
+    line-height: 1.6;
+  }
+
+  /* ── FOOTER ────────────────────────────────────────────────────────── */
+  .lp-footer {
+    border-top: 1px solid var(--border-subtle);
+    padding: var(--space-5) 0 var(--space-4);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .lp-footer__row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    font-size: var(--fs-small);
+    color: var(--text-muted);
+  }
+
+  .lp-footer__row--meta {
+    font-size: var(--fs-micro);
+    justify-content: center;
+    text-align: center;
+  }
+
+  .lp-footer__contact {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .lp-footer__contact svg {
+    color: var(--text-disabled);
+    flex-shrink: 0;
+  }
+
+  .lp-footer__links {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+  }
+
+  .lp-footer__link {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-weight: var(--fw-medium);
+    transition: color 0.15s ease;
+  }
+
+  .lp-footer__link:hover {
+    color: var(--brand);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .lp-footer__sep {
+    color: var(--border-strong);
+    user-select: none;
+  }
+
+  /* ── RESPONSIVE POLISH ─────────────────────────────────────────────── */
+  @media (max-width: 559px) {
+    .lp-hero {
+      padding: var(--space-6) 0 var(--space-6);
+    }
+
+    .lp-hero__ctas {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .lp-evidence__card {
+      flex-direction: row;
+      align-items: baseline;
+      gap: var(--space-3);
+      flex-wrap: wrap;
+    }
+
+    .lp-evidence__figure {
+      font-size: 1.75rem;
+    }
+
+    .lp-footer__row {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--space-2);
+    }
+
+    .lp-footer__row--meta {
+      align-items: center;
+    }
+  }
+</style>

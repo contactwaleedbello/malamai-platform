@@ -1,0 +1,425 @@
+---
+// Admin Screen 1: Report Queue (PRD Section 7.1 & 15.5)
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import AdminNav from "../../components/AdminNav.astro";
+import EmptyState from "../../components/EmptyState.astro";
+import ErrorNotice from "../../components/ErrorNotice.astro";
+import { getCurrentUser, getReportQueue } from "../../lib/data.js";
+
+const user = await getCurrentUser();
+const isStaff = user && (user.role === "Admin" || user.role === "Moderator");
+
+let reports = [];
+let fetchError = null;
+
+if (isStaff) {
+  try {
+    reports = await getReportQueue(user.role);
+  } catch (err) {
+    fetchError = err.message || "Failed to load report queue.";
+  }
+}
+---
+
+<BaseLayout title="Report Queue - Admin">
+  {isStaff ? (
+    <div class="mc-admin-layout">
+      <AdminNav activeTab="reports" viewerRole={user.role} />
+
+      <header class="mc-page-header">
+        <div class="mc-page-header__content">
+          <h1 class="mc-page-title">Report Queue (Section 7.1)</h1>
+          <p class="mc-page-desc">
+            Review community flagged questions, replies, and teaching resources. Items with 3 reports are auto-hidden. Serious safety reports auto-hide immediately.
+          </p>
+        </div>
+      </header>
+
+      {fetchError && (
+        <ErrorNotice message={fetchError} retryAction={true} />
+      )}
+
+      <!-- Queue List -->
+      {reports.length === 0 ? (
+        <EmptyState 
+          icon="check-circle"
+          message="No reports in the queue. All community content is in good order."
+          actionText="View approvals"
+          actionHref="/admin/approvals"
+        />
+      ) : (
+        <div class="mc-reports-stack" id="reports-list-container">
+          {reports.map((report) => (
+            <article 
+              class:list={[
+                "mc-report-card", 
+                { "mc-report-card--emergency": report.has_emergency },
+                { "mc-report-card--hidden": report.current_status === "hidden" },
+                { "mc-report-card--removed": report.current_status === "removed" }
+              ]}
+              id={`card-${report.item_type}-${report.item_id}`}
+              data-item-type={report.item_type}
+              data-item-id={report.item_id}
+            >
+              <!-- Emergency Priority Header -->
+              {report.has_emergency && (
+                <div class="mc-emergency-flag-banner" role="alert">
+                  <svg class="icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                    <line x1="12" y1="9" x2="12" y2="13"></line>
+                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                  </svg>
+                  <strong>SERIOUS SAFETY REPORT - PRIORITY 1 (AUTO-HIDDEN)</strong>
+                </div>
+              )}
+
+              <div class="mc-report-card__header">
+                <div class="mc-report-meta-badges">
+                  <span class="mc-badge-type">{report.item_type}</span>
+                  <span class="mc-badge-count">
+                    {report.reports_count} {report.reports_count === 1 ? "report" : "reports"}
+                  </span>
+                  <span class:list={["mc-status-pill", `mc-status-pill--${report.current_status}`]}>
+                    Status: {report.current_status}
+                  </span>
+                </div>
+                <time class="mc-report-date">{new Date(report.created_at).toLocaleDateString()}</time>
+              </div>
+
+              <h2 class="mc-report-title">
+                {report.item_title}
+              </h2>
+
+              <div class="mc-report-reasons-block">
+                <span class="mc-reasons-label">Reported reasons:</span>
+                <div class="mc-reasons-tags">
+                  {report.reasons.map((r) => (
+                    <span class:list={["mc-reason-tag", { "mc-reason-tag--danger": r === "serious_safety" }]}>
+                      {r.replace(/_/g, " ")}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {report.details_list && report.details_list.length > 0 && (
+                <div class="mc-report-details-box">
+                  <strong>Reporter notes:</strong>
+                  <ul>
+                    {report.details_list.map((d) => (
+                      <li>"{d}"</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              <div class="mc-report-footer">
+                <div class="mc-poster-info">
+                  <span>Author: <strong>Malam {report.poster_first_name}</strong> ({report.poster_state} State)</span>
+                </div>
+
+                <!-- Admin Action Controls -->
+                <div class="mc-report-actions">
+                  {report.current_status !== "hidden" && (
+                    <button 
+                      type="button" 
+                      class="mc-btn mc-btn--secondary mc-btn-sm btn-hide-item"
+                      data-type={report.item_type}
+                      data-id={report.item_id}
+                    >
+                      Hide item
+                    </button>
+                  )}
+
+                  {report.current_status === "hidden" && (
+                    <button 
+                      type="button" 
+                      class="mc-btn mc-btn--secondary mc-btn-sm btn-restore-item"
+                      data-type={report.item_type}
+                      data-id={report.item_id}
+                    >
+                      Restore item
+                    </button>
+                  )}
+
+                  {report.current_status !== "removed" && (
+                    <button 
+                      type="button" 
+                      class="mc-btn mc-btn--danger mc-btn-sm btn-remove-item"
+                      data-type={report.item_type}
+                      data-id={report.item_id}
+                      title="Permanently remove and leave audit log record"
+                    >
+                      Remove (ADM-03)
+                    </button>
+                  )}
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+      )}
+    </div>
+  ) : (
+    <div class="mc-access-refused">
+      <div class="mc-feedback mc-feedback--error" role="alert">
+        <h2 class="mc-feedback__title">Access Refused (Admin Only)</h2>
+        <p class="mc-feedback__message">
+          You do not have permission to view the Report Queue. Only Administrators and Moderators may access moderation screens.
+        </p>
+        <a href="/home" class="mc-btn mc-btn--primary" style="margin-top: var(--space-4);">Return to Home</a>
+      </div>
+    </div>
+  )}
+</BaseLayout>
+
+<style>
+  .mc-reports-stack {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  .mc-report-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    padding: var(--space-5);
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  }
+
+  .mc-report-card:hover {
+    box-shadow: var(--shadow-md);
+  }
+
+  .mc-report-card--emergency {
+    border: 2px solid var(--danger);
+    background: var(--surface);
+  }
+
+  .mc-report-card--hidden {
+    border-left: 6px solid var(--warning);
+  }
+
+  .mc-report-card--removed {
+    border-left: 6px solid var(--danger);
+    opacity: 0.75;
+  }
+
+  .mc-emergency-flag-banner {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    background: var(--danger);
+    color: var(--color-white);
+    padding: var(--space-2) var(--space-4);
+    border-radius: var(--radius-md);
+    font-size: var(--fs-small);
+    font-weight: var(--fw-bold);
+    margin-bottom: var(--space-4);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .mc-report-card__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-3);
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .mc-report-meta-badges {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+  }
+
+  .mc-badge-type {
+    text-transform: uppercase;
+    font-size: var(--fs-micro);
+    font-weight: var(--fw-bold);
+    background: var(--surface-bg);
+    border: 1px solid var(--border);
+    padding: 2px 8px;
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+  }
+
+  .mc-badge-count {
+    font-size: var(--fs-micro);
+    font-weight: var(--fw-bold);
+    color: var(--danger-text);
+    background: var(--danger-subtle);
+    border: 1px solid var(--danger-border);
+    padding: 2px 8px;
+    border-radius: var(--radius-sm);
+  }
+
+  .mc-status-pill {
+    font-size: var(--fs-micro);
+    font-weight: var(--fw-bold);
+    padding: 2px 8px;
+    border-radius: var(--radius-sm);
+    text-transform: capitalize;
+  }
+
+  .mc-status-pill--live {
+    background: var(--success-subtle);
+    color: var(--success-text);
+    border: 1px solid var(--success-border);
+  }
+
+  .mc-status-pill--hidden {
+    background: var(--warning-subtle);
+    color: var(--warning-text);
+    border: 1px solid var(--warning-border);
+  }
+
+  .mc-status-pill--removed {
+    background: var(--danger-subtle);
+    color: var(--danger-text);
+    border: 1px solid var(--danger-border);
+  }
+
+  .mc-report-date {
+    font-size: var(--fs-micro);
+    color: var(--text-muted);
+  }
+
+  .mc-report-title {
+    font-size: var(--fs-title-sm);
+    font-weight: var(--fw-bold);
+    color: var(--text-primary);
+    margin: 0 0 var(--space-3) 0;
+    line-height: var(--lh-snug);
+  }
+
+  .mc-report-reasons-block {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-bottom: var(--space-3);
+    flex-wrap: wrap;
+  }
+
+  .mc-reasons-label {
+    font-size: var(--fs-small);
+    font-weight: var(--fw-semibold);
+    color: var(--text-muted);
+  }
+
+  .mc-reasons-tags {
+    display: flex;
+    gap: var(--space-1);
+    flex-wrap: wrap;
+  }
+
+  .mc-reason-tag {
+    font-size: var(--fs-micro);
+    padding: 2px 8px;
+    border-radius: var(--radius-sm);
+    background: var(--surface-bg);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    text-transform: capitalize;
+  }
+
+  .mc-reason-tag--danger {
+    background: var(--danger);
+    color: var(--color-white);
+    border-color: var(--danger);
+    font-weight: var(--fw-bold);
+  }
+
+  .mc-report-details-box {
+    background: var(--surface-bg);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: var(--space-3);
+    margin-bottom: var(--space-4);
+    font-size: var(--fs-small);
+  }
+
+  .mc-report-details-box ul {
+    margin: 4px 0 0;
+    padding-left: 20px;
+    color: var(--text-secondary);
+  }
+
+  .mc-report-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .mc-poster-info {
+    font-size: var(--fs-small);
+    color: var(--text-muted);
+  }
+
+  .mc-report-actions {
+    display: flex;
+    gap: var(--space-2);
+    align-items: center;
+  }
+
+  .mc-btn-sm {
+    min-height: 36px;
+    padding: var(--space-1) var(--space-3);
+    font-size: var(--fs-small);
+  }
+
+  .mc-access-refused {
+    max-width: 600px;
+    margin: var(--space-8) auto;
+  }
+</style>
+
+<script is:inline>
+  document.addEventListener('click', async (e) => {
+    const hideBtn = e.target.closest('.btn-hide-item');
+    const restoreBtn = e.target.closest('.btn-restore-item');
+    const removeBtn = e.target.closest('.btn-remove-item');
+
+    if (!hideBtn && !restoreBtn && !removeBtn) return;
+
+    const btn = hideBtn || restoreBtn || removeBtn;
+    const type = btn.getAttribute('data-type');
+    const id = btn.getAttribute('data-id');
+    const card = document.getElementById(`card-${type}-${id}`);
+
+    btn.disabled = true;
+    btn.textContent = 'Processing...';
+
+    try {
+      const dataModule = await import('/src/lib/data.js');
+
+      if (hideBtn) {
+        await dataModule.hideItem(type, id);
+        alert(`Item ${id} is now hidden from public view.`);
+      } else if (restoreBtn) {
+        await dataModule.restoreItem(type, id);
+        alert(`Item ${id} has been restored.`);
+      } else if (removeBtn) {
+        if (!confirm('Are you sure you want to permanently remove this item? An audit log entry will be preserved.')) {
+          btn.disabled = false;
+          btn.textContent = 'Remove (ADM-03)';
+          return;
+        }
+        await dataModule.removeItem(type, id);
+        alert(`Item ${id} removed and recorded in platform export audit log.`);
+      }
+
+      window.location.reload();
+    } catch (err) {
+      alert(err.message || 'Operation failed.');
+      btn.disabled = false;
+    }
+  });
+</script>
